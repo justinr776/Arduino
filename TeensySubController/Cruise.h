@@ -1,0 +1,2 @@
+void initializeCruise();
+void cruise();

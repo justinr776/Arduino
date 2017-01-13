@@ -1,0 +1,2 @@
+void DCCDControl();
+void initializeDCCD();
