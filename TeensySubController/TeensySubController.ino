@@ -3,6 +3,7 @@
   https://forum.pjrc.com/threads/40173-FTM-Channel-compare-interrupts-(Teensy-3-5)   Timer info
 */
 #define DEBUG 1
+#include <math.h>
 #include "Globals.h"
 #include <Wire.h>
 #include "CAN.h"
@@ -16,6 +17,7 @@
 #include "Speed.h"
 #include "Shiftlight.h"
 #include "Knock.h"
+#include "Alternator.h"
 
 void setup() {
 #if (DEBUG)
@@ -29,6 +31,7 @@ void setup() {
   initializeCANbus();
   //initializeDisplay();
   initializeWheelDecoder();
+  initializeAlternator();
   //check_first_run();
   //buildarrays();
 #if (DEBUG)
@@ -48,6 +51,7 @@ void loop() {
   //DCCDControl();
   //readSensors();
   WheelOperations();
+  SetAlternatorPWM(BATTV);
 #if (DEBUG)
   timing = micros() - timing;
   Serial.print("Timing: " + timing);

@@ -10,6 +10,10 @@ void initializePowerSteering() {
 //}
 
 void powerSteering() {
+  powersteeringout = -200 * log(speedavg) + 455;
+  if (powersteeringout <= 5)
+    powersteeringout = 5;
+
   //Use 3D map to map pulses based on speed and agressiveness setting   (Stock is 1 pulse per 40cm or 1 pulse every 0.000248548 mi )
   //X-axis will be speed        Y-axis will be 3 modes which will be selected based on rotory and screen
   //Use value called "powersteeringout"

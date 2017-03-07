@@ -9,6 +9,7 @@ static const int speedout1Pin = 10;
 static const int DCCDout = 29;
 static const int DBWOut = 0;
 static const int powerSteeringPin = 5;
+static const int alternatorPin = 56;
 static const int canStandby = 57;
 
 //Inputs
