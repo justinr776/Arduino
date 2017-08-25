@@ -98,6 +98,55 @@ void UpdateDisplay() {
     tft.print(OilP);
     bOilP = false;
   }
+  if (bLambda) {
+    tft.setCursor(290, 175);
+    tft.setFontScale(2);
+    tft.fillRect(290, 175, 100, 50, RA8875_BLACK);
+    tft.print(Lambda);
+    bLambda = false;
+  }
+  if (bTwelveV) {
+    tft.setCursor(590, 175);
+    tft.setFontScale(2);
+    tft.fillRect(590, 175, 100, 50, RA8875_BLACK);
+    tft.print(TwelveV);
+    bTwelveV = false;
+  }
+  if (bFuelP) {
+    tft.setCursor(590, 225);
+    tft.setFontScale(2);
+    tft.fillRect(590, 225, 100, 50, RA8875_BLACK);
+    tft.print(FuelP);
+    bFuelP = false;
+  }
+  if (bOilT) {
+    tft.setCursor(45, 235);
+    tft.setFontScale(2);
+    tft.fillRect(45, 235, 100, 50, RA8875_BLACK);
+    tft.print(OilT);
+    bOilT = false;
+  }
+  if (bOilP) {
+    tft.setCursor(45, 175);
+    tft.setFontScale(2);
+    tft.fillRect(45, 175, 100, 50, RA8875_BLACK);
+    tft.print(OilP);
+    bOilP = false;
+  }
+  if (bECT) {
+    tft.setCursor(45, 175);
+    tft.setFontScale(2);
+    tft.fillRect(45, 175, 100, 50, RA8875_BLACK);
+    tft.print(ECT);
+    bECT = false;
+  }
+  if (bEthanol) {
+    tft.setCursor(45, 250);
+    tft.setFontScale(2);
+    tft.fillRect(45, 250, 100, 50, RA8875_BLACK);
+    tft.print(Ethanol);
+    bEthanol = false;
+  }
 }
 
 void SetTestValues(){  
