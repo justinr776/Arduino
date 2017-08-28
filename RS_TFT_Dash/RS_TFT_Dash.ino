@@ -1,5 +1,6 @@
 #include <SPI.h>
 #include <RA8875.h>
+#include <Wire.h>
 #include "fonts/squarefont_14.c"
 /*
   Arduino's
@@ -198,7 +199,10 @@ void SetTestValues() {
   OilP = 60;
 }
 
-void wireReceive(int howMany){
+void wireReceive(int howMany){ 
+  byte id = Wire.read();
+  byte high = Wire.read();
+  byte low = Wire.read();
   
 }
 
