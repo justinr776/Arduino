@@ -15,6 +15,9 @@
 
 RA8875 tft = RA8875(RA8875_CS, RA8875_RESET); //Teensy3/arduino's
 void setup() {
+  Serial.begin(115200);
+  Serial.println("Starting");
+  
   long unsigned debug_start = millis ();
   tft.begin(RA8875_800x480);
   tft.fillWindow(RA8875_BLACK);//fill window RED
@@ -37,23 +40,24 @@ void setup() {
   tft.setCursor(766, 390);
   tft.print("%");
   tft.brightness(125);
-  SetTestValues();
+  //SetTestValues();
   Wire.begin(8);
   Wire.onReceive(wireReceive);
 }
 
-uint16_t  RPM = 1000, PRPM = 0, IMAP = 0, EMAP = 0, TPSOverall = 0, TPS1 = 0,
-          ECT = 0, MAT = 0, OilT = 0, FuelT = 0, OilP = 0, FuelP = 0, DiffFuelP = 0, ServoPos = 0,
-          CoolantP = 0, Ethanol = 0, VehicleSpeed = 0, GearNumber = 0, SpdDiffinFlagsLow = 0, FlagsHigh = 0,
+uint16_t  RPM = 1000, PRPM = 0,  TPSOverall = 0, TPS1 = 0,
+          DiffFuelP = 0, ServoPos = 0,
+          CoolantP = 0, VehicleSpeed = 0, GearNumber = 0, SpdDiff = 0, FlagsLow = 0, FlagsHigh = 0,
           SlipLRGround = 0, KnockMax = 0, Inj1Duty = 0, Inj2Duty = 0, Inj3Duty = 0, Inj4Duty = 0, CalcChargTemp1 = 0,
           StoichRatio = 0, TargetLambda = 0, FuelInjDurOut1 = 0, FuelInjDurOut2 = 0, IgnTiming = 0,
           AsyncInjDur1 = 0, AsyncInjDur2 = 0, IdleEffortCL = 0, UnclippedIdleEffort = 0, IdleEffortDuty = 0,
           CuttingCond = 0, CurrentRPMLimit = 0, PitlaneRPMLimit = 0, FuelCut = 0, IgnCut = 0, FuelL = 50;
-float ExtV = 0, TwelveV = 0, FiveV = 0, SGNDV = 0,  Lambda = 1, PLambda = 0;
+float ExtV = 0, TwelveV = 0, FiveV = 0, SGNDV = 0,  Lambda = 1, PLambda = 0, IMAP = 0, EMAP = 0, ECT = 0, MAT = 0,
+      OilT = 0, FuelT = 0, OilP = 0, FuelP = 0, Ethanol = 0;
 boolean bExtV = false, bTwelveV = false, bFiveV = false, bSGNDV = false, bRPM = false, bIMAP = false, bEMAP = false,
         bTPSOverall = false, bTPS1 = false, bLambda = false, bECT = false, bMAT = false, bOilT = false, bFuelT = false,
         bOilP = false, bFuelP = false, bDiffFuelP = false, bServoPos = false, bCoolantP = false, bEthanol = false,
-        bVehicleSpeed = false, bGearNumber = false, bSpdDiffinFlagsLow = false, bFlagsHigh = false, bSlipLRGround = false,
+        bVehicleSpeed = false, bGearNumber = false, bSpdDiff = false, bFlagsLow = false, bFlagsHigh = false, bSlipLRGround = false,
         bKnockMax = false, bInj1Duty = false, bInj2Duty = false, bInj3Duty = false, bInj4Duty = false, bCalcChargTemp1 = false,
         bStoichRatio = false, bTargetLambda = false, bFuelInjDurOut1 = false, bFuelInjDurOut2 = false, bIgnTiming = false,
         bAsyncInjDur1 = false, bAsyncInjDur2 = false, bIdleEffortCL = false, bUnclippedIdleEffort = false, bIdleEffortDuty = false,
@@ -199,16 +203,69 @@ void SetTestValues() {
   OilP = 60;
 }
 
-void wireReceive(int howMany){ 
+void wireReceive(int howMany) {
   byte id = Wire.read();
   byte high = Wire.read();
   byte low = Wire.read();
-  
+  Serial.print(id);
+  Serial.print("\tValue:");
+  Serial.println(high << 8 + low);
+  switch (id) {
+    case 1:
+      TwelveV = (high << 8 + low) / 1000;
+      bTwelveV = true;
+      break;
+    case 2:
+      RPM = high << 8 + low;
+      bRPM = true;
+      break;
+    case 3:
+      IMAP = (high << 8 + low) / 10;
+      bIMAP = true;
+      break;
+    case 4:
+      Lambda = (high << 8 + low) / 1000;
+      bLambda = true;
+      break;
+    case 5:
+      ECT = (high << 8 + low) / 10;
+      bECT = true;
+      break;
+    case 6:
+      OilT = (high << 8 + low) / 10;
+      bOilT = true;
+      break;
+    case 7:
+      OilP = (high << 8 + low) / 10;
+      bOilP = true;
+      break;
+    case 8:
+      FuelP = (high << 8 + low) / 10;
+      bFuelP = true;
+      break;
+    case 9:
+      Ethanol = (high << 8 + low) / 10;
+      bEthanol = true;
+      break;
+    case 10:
+      VehicleSpeed = (high << 8 + low) / 10;
+      bVehicleSpeed = true;
+      break;
+    case 11:
+      FlagsLow = (high << 8 + low);
+      bFlagsLow = true;
+      break;
+    case 12:
+      FlagsHigh = (high << 8 + low);
+      bFlagsHigh = true;
+      break;
+  }
+
 }
 
 void loop() {
-  delay(50);
+  //delay(50);
   //SetTestValues();
-  UpdateDisplay();
-  SetTestValues();
+  //UpdateDisplay();
+  //SetTestValues();
 }
