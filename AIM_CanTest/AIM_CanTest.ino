@@ -2,7 +2,7 @@
 #include "mcp_can.h"
 #include "Wire.h"
 
-const int SPI_CS_PIN = 1;
+const int SPI_CS_PIN = 10;
 MCP_CAN CAN(SPI_CS_PIN);
 
 void setup() {
