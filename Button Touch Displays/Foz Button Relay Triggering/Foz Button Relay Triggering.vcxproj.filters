@@ -15,11 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="AIM_Dash.ino" />
-    <None Include="TFT Display.ino" />
-    <None Include="AIM CANbus ATtiny.ino" />
-    <None Include="SketchCode.ino">
-      <Filter>Source Files</Filter>
-    </None>
+    <None Include="Foz_Button_Relay_Triggering.ino" />
   </ItemGroup>
+ 
 </Project>

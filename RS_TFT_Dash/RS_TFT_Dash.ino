@@ -265,7 +265,7 @@ void wireReceive(int howMany) {
 
 void loop() {
   //delay(50);
-  //SetTestValues();
-  //UpdateDisplay();
+  SetTestValues();
+  UpdateDisplay();
   //SetTestValues();
 }
