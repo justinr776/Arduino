@@ -17,19 +17,19 @@ RA8875 tft = RA8875(RA8875_CS, RA8875_RESET); //Teensy3/arduino's
 void setup() {
   Serial.begin(115200);
   Serial.println("Starting");
-  
-  long unsigned debug_start = millis ();
+
+  long unsigned debug_start = millis();
   tft.begin(RA8875_800x480);
   tft.fillWindow(RA8875_BLACK);//fill window RED
   tft.setTextColor(RA8875_WHITE);
   tft.setFont(&squarefont_14);
   tft.showCursor(NOCURSOR, false);
   tft.setFontScale(2);
-  tft.setCursor(45, 235);
+  tft.setCursor(5, 235);
   tft.print("OILP");
-  tft.setCursor(45, 330);
+  tft.setCursor(5, 330);
   tft.print("FUELP");
-  tft.setCursor(45, 425);
+  tft.setCursor(5, 425);
   tft.print("VOLT");
   tft.setCursor(675, 235);
   tft.print("COOL");
@@ -39,24 +39,30 @@ void setup() {
   tft.print("FLEX");
   tft.setCursor(766, 390);
   tft.print("%");
+  tft.setCursor(320, 425);
+  tft.print("ODO");
+  tft.setCursor(525, 425);
+  tft.print("MPG");
+  tft.setCursor(315, 325);
+  tft.print("MAP");
   tft.brightness(125);
   //SetTestValues();
   Wire.begin(8);
   Wire.onReceive(wireReceive);
 }
 
-uint16_t  RPM = 1000, PRPM = 0,  TPSOverall = 0, TPS1 = 0,
-          DiffFuelP = 0, ServoPos = 0,
+uint16_t  RPM = 1000, PRPM = 0, TPSOverall = 0, TPS1 = 0, DiffFuelP = 0, ServoPos = 0, InjFlowRate = 0,
           CoolantP = 0, VehicleSpeed = 0, GearNumber = 0, SpdDiff = 0, FlagsLow = 0, FlagsHigh = 0,
           SlipLRGround = 0, KnockMax = 0, Inj1Duty = 0, Inj2Duty = 0, Inj3Duty = 0, Inj4Duty = 0, CalcChargTemp1 = 0,
           StoichRatio = 0, TargetLambda = 0, FuelInjDurOut1 = 0, FuelInjDurOut2 = 0, IgnTiming = 0,
           AsyncInjDur1 = 0, AsyncInjDur2 = 0, IdleEffortCL = 0, UnclippedIdleEffort = 0, IdleEffortDuty = 0,
           CuttingCond = 0, CurrentRPMLimit = 0, PitlaneRPMLimit = 0, FuelCut = 0, IgnCut = 0, FuelL = 50;
-float ExtV = 0, TwelveV = 0, FiveV = 0, SGNDV = 0,  Lambda = 1, PLambda = 0, IMAP = 0, EMAP = 0, ECT = 0, MAT = 0,
-      OilT = 0, FuelT = 0, OilP = 0, FuelP = 0, Ethanol = 0;
+uint16_t ExtV = 0, FiveV = 0, SGNDV = 0,  IMAP = 0, EMAP = 0, ECT = 0, MAT = 0,
+         OilT = 0, FuelT = 0, OilP = 0, FuelP = 0, Ethanol = 0;
+float Lambda = 1, PLambda = 0,  TwelveV = 0, miles = 0;
 boolean bExtV = false, bTwelveV = false, bFiveV = false, bSGNDV = false, bRPM = false, bIMAP = false, bEMAP = false,
         bTPSOverall = false, bTPS1 = false, bLambda = false, bECT = false, bMAT = false, bOilT = false, bFuelT = false,
-        bOilP = false, bFuelP = false, bDiffFuelP = false, bServoPos = false, bCoolantP = false, bEthanol = false,
+        bOilP = false, bFuelP = false, bDiffFuelP = false, bServoPos = false, bCoolantP = false, bEthanol = false, bInjFlowRate = false,
         bVehicleSpeed = false, bGearNumber = false, bSpdDiff = false, bFlagsLow = false, bFlagsHigh = false, bSlipLRGround = false,
         bKnockMax = false, bInj1Duty = false, bInj2Duty = false, bInj3Duty = false, bInj4Duty = false, bCalcChargTemp1 = false,
         bStoichRatio = false, bTargetLambda = false, bFuelInjDurOut1 = false, bFuelInjDurOut2 = false, bIgnTiming = false,
@@ -73,7 +79,8 @@ void UpdateDisplay() {
         tft.fillRect(0, 0, val, 100, RA8875_GREEN);
       else if (RPM < 6500 && PRPM > 6500)
         tft.fillRect(0, 0, val, 100, RA8875_YELLOW);
-    } else {
+    }
+    else {
       uint16_t color = RPM > 6500 ? RA8875_RED : RPM > 5000 ? RA8875_YELLOW : RA8875_GREEN;
       tft.fillRect(0, 0, val, 100, color);
     }
@@ -108,7 +115,8 @@ void UpdateDisplay() {
         tft.fillRect(400, 200, val, 50, RA8875_RED); //Draw line out
       else
         tft.fillRect(400 + val, 200, 200 - val, 50, RA8875_BLACK); //Draw line in
-    } else if (Lambda < 1) { //  Draw Blue to the left
+    }
+    else if (Lambda < 1) { //  Draw Blue to the left
       int val = (Lambda - .7) * 666;
       if (PLambda > 1)
         tft.fillRect(400, 200, 200, 50, RA8875_BLACK); //Draw other side black
@@ -116,29 +124,36 @@ void UpdateDisplay() {
         tft.fillRect(200, 200, val, 50, RA8875_BLACK); //Draw line in
       else
         tft.fillRect(200 + val, 200, 200 - val, 50, RA8875_BLUE); //Draw line outwards
-    } else
+    }
+    else
       tft.fillRect(200, 200, 400, 50, RA8875_BLACK);
     PLambda = Lambda;
     bLambda = false;
   }
   if (bOilP) {
-    tft.setCursor(45, 175);
+    tft.setCursor(5, 175);
     tft.setFontScale(4);
-    tft.fillRect(50, 195, 110, f2, RA8875_BLACK);
+    tft.fillRect(10, 195, 110, f2, OilP < 36 ? RA8875_RED : RA8875_BLACK); // 206
     tft.print(OilP);
     bOilP = false;
   }
-  if (bFuelP) {
-    tft.setCursor(45, 270);
+  if (bIMAP) {
+    tft.setCursor(315, 265);
     tft.setFontScale(4);
-    tft.fillRect(50, 290, 110, f2, RA8875_BLACK);
+    tft.fillRect(320, 285, 90, f2, RA8875_BLACK);
+    tft.print(IMAP);
+  }
+  if (bFuelP) {
+    tft.setCursor(5, 270);
+    tft.setFontScale(4);
+    tft.fillRect(10, 290, 110, f2, FuelP < 48 ? RA8875_RED : RA8875_BLACK); //275
     tft.print(FuelP);
     bFuelP = false;
   }
   if (bTwelveV) {
-    tft.setCursor(45, 365);
+    tft.setCursor(5, 365);
     tft.setFontScale(4);
-    tft.fillRect(50, 385, 145, f2, RA8875_BLACK);
+    tft.fillRect(10, 385, 145, f2, RA8875_BLACK);
     tft.print(TwelveV);
     bTwelveV = false;
   }
@@ -146,46 +161,69 @@ void UpdateDisplay() {
     int val = 200 - (FuelL << 1);
     tft.fillRect(220, 280, 70, val, RA8875_WHITE);
     tft.fillRect(220, 280 + val, 70, 200 - val, RA8875_GREEN);
+    tft.setCursor(215, 365);
+    tft.setFontScale(4);
+    tft.setTextColor(RA8875_BLACK);
+    tft.print(FuelL);
+    tft.setTextColor(RA8875_WHITE);
     bFuelL = false;
   }
   if (bECT) {
     tft.setCursor(675, 175);
     tft.setFontScale(4);
-    tft.fillRect(680, 195, 110, f2, RA8875_BLACK);
+    tft.fillRect(680, 195, 110, f2, ECT > 208 ? RA8875_RED : RA8875_BLACK);//104
     tft.print(ECT);
     bECT = false;
   }
   if (bOilT) {
     tft.setCursor(675, 270);
     tft.setFontScale(4);
-    tft.fillRect(680, 290, 110, f2, RA8875_BLACK);
+    tft.fillRect(680, 290, 110, f2, OilT > 200 ? RA8875_RED : RA8875_BLACK); //120
     tft.print(OilT);
     bOilT = false;
   }
   if (bEthanol) {
     tft.setCursor(675, 365);
     tft.setFontScale(4);
-    tft.fillRect(680, 385, 88, f2, RA8875_BLACK);
+    tft.fillRect(680, 385, 90, f2, RA8875_BLACK);
     tft.print(Ethanol);
     bEthanol = false;
   }
 }
+
+void UpdateMiles() {
+  tft.setCursor(315, 365);
+  tft.setFontScale(4);
+  tft.fillRect(320, 385, 150, f2, RA8875_BLACK);
+  tft.print(miles);
+}
+
+void UpdateMPG(float MPG) {
+  tft.setCursor(465, 365);
+  tft.setFontScale(4);
+  tft.fillRect(470, 385, 210, f2, RA8875_BLACK);
+  tft.print(MPG);
+}
+
 boolean Lup = true;
 void SetTestValues() {
   bFuelP = true;
-  FuelP = 58;
+  FuelP = 585 / 10;
   bFuelL = true;
   FuelL = 50;
+  bIMAP = true;
+  IMAP = 50.55;
   bEthanol = true;
-  Ethanol = 10;
+  Ethanol = 22.55;
   bECT = true;
-  ECT = 188;
+  ECT = 225;
   bTwelveV = true;
   TwelveV = 12.62;
   bOilT = true;
   OilT = 225;
   bOilP = true;
   bLambda = true;
+  InjFlowRate = 120;
   if (Lambda >= 1.2)
     Lup = false;
   else if (Lambda <= .7)
@@ -259,13 +297,33 @@ void wireReceive(int howMany) {
       FlagsHigh = (high << 8 + low);
       bFlagsHigh = true;
       break;
+    case 13:
+      InjFlowRate = (high << 8 + low);
+      bInjFlowRate = true;
+      break;
   }
 
 }
 
+long unsigned start;
 void loop() {
-  //delay(50);
-  SetTestValues();
+  /*if (millis() - start > 995) {
+    start = millis();
+    float temp = VehicleSpeed * 0.000277;
+    miles += temp;
+    UpdateMiles();
+    UpdateMPG(temp/(InjFlowRate*0.0000044));
+    }*/
+  if (millis() - start > 495) {
+    start = millis();
+    float temp = VehicleSpeed * 0.0001388;
+    miles += temp;
+    UpdateMiles();
+    UpdateMPG(temp / (InjFlowRate * 0.0000022));
+  }
+ // delay(100);
+  //SetTestValues();
   UpdateDisplay();
   //SetTestValues();
 }
+
