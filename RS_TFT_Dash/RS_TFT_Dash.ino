@@ -250,55 +250,55 @@ void wireReceive(int howMany) {
   Serial.println(high << 8 + low);
   switch (id) {
     case 1:
-      TwelveV = (high << 8 + low) / 1000;
+      TwelveV = ((high << 8) + low) / 1000;
       bTwelveV = true;
       break;
     case 2:
-      RPM = high << 8 + low;
+      RPM = (high << 8) + low;
       bRPM = true;
       break;
     case 3:
-      IMAP = (high << 8 + low) / 10;
+      IMAP = ((high << 8) + low) / 10;
       bIMAP = true;
       break;
     case 4:
-      Lambda = (high << 8 + low) / 1000;
+      Lambda = ((high << 8) + low) / 1000;
       bLambda = true;
       break;
     case 5:
-      ECT = (high << 8 + low) / 10;
+      ECT = ((high << 8) + low) / 10;
       bECT = true;
       break;
     case 6:
-      OilT = (high << 8 + low) / 10;
+      OilT = ((high << 8) + low) / 10;
       bOilT = true;
       break;
     case 7:
-      OilP = (high << 8 + low) / 10;
+      OilP = ((high << 8) + low) / 10;
       bOilP = true;
       break;
     case 8:
-      FuelP = (high << 8 + low) / 10;
+      FuelP = ((high << 8) + low) / 10;
       bFuelP = true;
       break;
     case 9:
-      Ethanol = (high << 8 + low) / 10;
+      Ethanol = ((high << 8) + low) / 10;
       bEthanol = true;
       break;
     case 10:
-      VehicleSpeed = (high << 8 + low) / 10;
+      VehicleSpeed = ((high << 8) + low) / 10;
       bVehicleSpeed = true;
       break;
     case 11:
-      FlagsLow = (high << 8 + low);
+      FlagsLow = ((high << 8) + low);
       bFlagsLow = true;
       break;
     case 12:
-      FlagsHigh = (high << 8 + low);
+      FlagsHigh = ((high << 8) + low);
       bFlagsHigh = true;
       break;
     case 13:
-      InjFlowRate = (high << 8 + low);
+      InjFlowRate = ((high << 8) + low);
       bInjFlowRate = true;
       break;
   }
@@ -321,7 +321,7 @@ void loop() {
     UpdateMiles();
     UpdateMPG(temp / (InjFlowRate * 0.0000022));
   }
- // delay(100);
+  // delay(100);
   //SetTestValues();
   UpdateDisplay();
   //SetTestValues();
