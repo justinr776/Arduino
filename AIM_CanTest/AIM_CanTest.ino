@@ -1,18 +1,24 @@
 #include <SPI.h>
 #include "mcp_can.h"
 #include "Wire.h"
-
+#define debug 1
 const int SPI_CS_PIN = 10;
 MCP_CAN CAN(SPI_CS_PIN);
 
 void setup() {
-//  Serial.begin(115200);
+#if debug
+  Serial.begin(115200);
+#endif
   while (CAN_OK != CAN.begin(CAN_1000KBPS))              // Haltech uses 1,000Kbps aka 1Mbps
   {
-//    Serial.println("CAN BUS Failure...");
+#if debug
+    Serial.println("CAN BUS Failure...");
+#endif
     delay(50);
- }
-//  Serial.println("CAN BUS is ready!");
+  }
+#if debug
+  Serial.println("CAN BUS is ready!");
+#endif
   Wire.begin();
 }
 
@@ -25,7 +31,7 @@ uint16_t inExtV, inTwelveV, inFiveV, inSGNDV, inRPM, inIMAP, inEMAP, inTPSOveral
          inCuttingCond, inCurrentRPMLimit, inPitlaneRPMLimit, inFuelCut, inIgnCut;
 uint16_t  RPM = 1000, IMAP = 0, EMAP = 0, TPSOverall = 0, TPS1 = 0, Twelve, Lambda, FlagsLow,
           ECT = 0, MAT = 0, OilT = 0, FuelT = 0, OilP = 0, FuelP = 0, DiffFuelP = 0, ServoPos = 0,
-          CoolantP = 0, Ethanol = 0, VehicleSpeed = 0, GearNumber = 0, SpdDiff= 0, FlagsHigh = 0,
+          CoolantP = 0, Ethanol = 0, VehicleSpeed = 0, GearNumber = 0, SpdDiff = 0, FlagsHigh = 0,
           SlipLRGround = 0, KnockMax = 0, Inj1Duty = 0, Inj2Duty = 0, Inj3Duty = 0, Inj4Duty = 0, CalcChargTemp1 = 0,
           StoichRatio = 0, TargetLambda = 0, FuelInjDurOut1 = 0, FuelInjDurOut2 = 0, IgnTiming = 0,
           AsyncInjDur1 = 0, AsyncInjDur2 = 0, IdleEffortCL = 0, UnclippedIdleEffort = 0, IdleEffortDuty = 0,
@@ -39,24 +45,41 @@ void sendWireMessage(byte id, uint16_t value) {
   Wire.endTransmission();
 }
 
+uint8_t hexTo(char h) {
+  //uint8_t x;
+  //sscanf(h, "%x", &x);
+  return strtol(h, NULL, 16);
+  //return x;
+}
+
 void loop() {
   if (CAN_MSGAVAIL == CAN.checkReceive())  {
     CAN.readMsgBuf(&len, buf);    // read data,  len: data length, buf: data buf
     unsigned char canId = CAN.getCanId();
-//    Serial.println("-----------------------------\nCAN ID: ");
-//    Serial.println(canId, HEX);
-//    for (int i = 0; i < len; i++) {
-//      Serial.print(buf[i], HEX);
-//      Serial.print("\t");
-//    }
-//    Serial.println();
+#if debug
+    Serial.print("-----------------------------\nCAN ID:\t");
+    Serial.println(canId, HEX);
+    for (int i = 0; i < len; i++) {
+      Serial.print(buf[i], HEX);
+      Serial.print("\t");
+    }
+#endif
     switch (canId) {
       case 0x04:
         inExtV = buf[0] << 8 + buf [1];
-        inTwelveV = buf[2] << 8 + buf [3];
+        Serial.println(strtol(buf[2], NULL, 16));// << 8 + strtol(buf[3], NULL, 16));
+        //inTwelveV = (uint8_t)strtol(buf[2], NULL, 16) << 8 + (uint8_t)strtol(buf[3], NULL, 16);
+        inTwelveV += 1;
         if (Twelve != inTwelveV) {
           sendWireMessage(1, inTwelveV);
           Twelve = inTwelveV;
+#if debug
+          Serial.print("TwelveV: ");
+          Serial.println(Twelve); for (int i = 0; i < len; i++) {
+            Serial.print(buf[i], HEX);
+            Serial.print("\t");
+          }
+#endif
         }
         inFiveV = buf[4] << 8 + buf [5];
         inSGNDV = buf[6] << 8 + buf [7];
@@ -66,6 +89,9 @@ void loop() {
         if (inRPM != RPM) {
           sendWireMessage(2, inRPM);
           RPM = inRPM;
+#if debug
+          Serial.println(RPM);
+#endif
         }
         break;
       case 0x61:
@@ -73,6 +99,9 @@ void loop() {
         if (IMAP != inIMAP) {
           sendWireMessage(3, inIMAP);
           IMAP = inIMAP;
+#if debug
+          Serial.println(IMAP);
+#endif
         }
         inEMAP = buf[4] << 8 + buf [5];
         break;
