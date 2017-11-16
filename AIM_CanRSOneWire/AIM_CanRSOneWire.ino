@@ -60,9 +60,7 @@ void loop() {
     switch (canId) {
       case 0x04:
         inExtV = (buf[0] << 8) + buf [1];
-        //Serial.println(strtol(buf[2], NULL, 16));// << 8) + strtol(buf[3], NULL, 16));
         inTwelveV = (buf[2] << 8) + buf[3];
-        inTwelveV += 1;
         if (Twelve != inTwelveV) {
           sendWireMessage(1, inTwelveV);
           Twelve = inTwelveV;
@@ -108,6 +106,9 @@ void loop() {
         if (Lambda != inLambda) {
           sendWireMessage(4, inLambda);
           Lambda = inLambda;
+#if debug
+          Serial.println(Lambda);
+#endif
         }
         inECT = (buf[6] << 8) + buf [7];
         if (ECT != inECT) {

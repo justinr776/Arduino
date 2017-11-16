@@ -262,7 +262,9 @@ void wireReceive(int howMany) {
       bIMAP = true;
       break;
     case 4:
-      Lambda = ((high << 8) + low) / 1000;
+      Lambda = ((float)((high << 8) + low)) / 1000;
+          Serial.print("\nLambda: ");
+          Serial.println(Lambda);Serial.println(((high << 8) + low));
       bLambda = true;
       break;
     case 5:
