@@ -1,7 +1,7 @@
 #include <SPI.h>
 #include "mcp_can.h"
 #include "Wire.h"
-#define debug 1
+#define debug 0
 const int SPI_CS_PIN = 10;
 MCP_CAN CAN(SPI_CS_PIN);
 
@@ -22,8 +22,8 @@ void setup() {
   Wire.begin();
 }
 
-unsigned char len = 0;
-unsigned char buf[8];
+byte len = 0; //unsigned char len = 0;
+byte buf[8]; //unsigned char buf[8];
 uint16_t inExtV, inTwelveV, inFiveV, inSGNDV, inRPM, inIMAP, inEMAP, inTPSOverall, inTPS1, inLambda, inECT, inMAT, inOilT, inFuelT, inOilP,
          inFuelP, inDiffFuelP, inServoPos, inCoolantP, inEthanol, inVehicleSpeed, inGearNumber, inSpdDiff, inFlagsLow, inFlagsHigh, inSlipLRGround,
          inKnockMax, inInj1Duty, inInj2Duty, inInj3Duty, inInj4Duty, inCalcChargTemp1, inStoichRatio, inTargetLambda, inFuelInjDurOut1,
@@ -45,13 +45,6 @@ void sendWireMessage(byte id, uint16_t value) {
   Wire.endTransmission();
 }
 
-uint8_t hexTo(char h) {
-  //uint8_t x;
-  //sscanf(h, "%x", &x);
-  return strtol(h, NULL, 16);
-  //return x;
-}
-
 void loop() {
   if (CAN_MSGAVAIL == CAN.checkReceive())  {
     CAN.readMsgBuf(&len, buf);    // read data,  len: data length, buf: data buf
@@ -59,33 +52,34 @@ void loop() {
 #if debug
     Serial.print("-----------------------------\nCAN ID:\t");
     Serial.println(canId, HEX);
-    for (int i = 0; i < len; i++) {
-      Serial.print(buf[i], HEX);
-      Serial.print("\t");
-    }
+//    for (int i = 0; i < len; i++) {
+//      Serial.print(buf[i], HEX);
+//      Serial.print("\t");
+//    }
 #endif
     switch (canId) {
       case 0x04:
-        inExtV = buf[0] << 8 + buf [1];
-        Serial.println(strtol(buf[2], NULL, 16));// << 8 + strtol(buf[3], NULL, 16));
-        //inTwelveV = (uint8_t)strtol(buf[2], NULL, 16) << 8 + (uint8_t)strtol(buf[3], NULL, 16);
+        inExtV = (buf[0] << 8) + buf [1];
+        //Serial.println(strtol(buf[2], NULL, 16));// << 8) + strtol(buf[3], NULL, 16));
+        inTwelveV = (buf[2] << 8) + buf[3];
         inTwelveV += 1;
         if (Twelve != inTwelveV) {
           sendWireMessage(1, inTwelveV);
           Twelve = inTwelveV;
 #if debug
           Serial.print("TwelveV: ");
-          Serial.println(Twelve); for (int i = 0; i < len; i++) {
+          Serial.println(Twelve); 
+          for (int i = 0; i < len; i++) {
             Serial.print(buf[i], HEX);
             Serial.print("\t");
           }
 #endif
         }
-        inFiveV = buf[4] << 8 + buf [5];
-        inSGNDV = buf[6] << 8 + buf [7];
+        inFiveV = (buf[4] << 8) + buf [5];
+        inSGNDV = (buf[6] << 8) + buf [7];
         break;
       case 0x10:
-        inRPM = buf[0] << 8 + buf [1];
+        inRPM = (buf[0] << 8) + buf [1];
         if (inRPM != RPM) {
           sendWireMessage(2, inRPM);
           RPM = inRPM;
@@ -95,7 +89,7 @@ void loop() {
         }
         break;
       case 0x61:
-        inIMAP = buf[0] << 8 + buf [1];
+        inIMAP = (buf[0] << 8) + buf [1];
         if (IMAP != inIMAP) {
           sendWireMessage(3, inIMAP);
           IMAP = inIMAP;
@@ -103,115 +97,115 @@ void loop() {
           Serial.println(IMAP);
 #endif
         }
-        inEMAP = buf[4] << 8 + buf [5];
+        inEMAP = (buf[4] << 8) + buf [5];
         break;
       case 0x63:
-        inTPSOverall = buf[0] << 8 + buf [1];
-        inTPS1 = buf[2] << 8 + buf [3];
+        inTPSOverall = (buf[0] << 8) + buf [1];
+        inTPS1 = (buf[2] << 8) + buf [3];
         break;
       case 0x64:
-        inLambda = buf[2] << 8 + buf [3];
+        inLambda = (buf[2] << 8) + buf [3];
         if (Lambda != inLambda) {
           sendWireMessage(4, inLambda);
           Lambda = inLambda;
         }
-        inECT = buf[6] << 8 + buf [7];
+        inECT = (buf[6] << 8) + buf [7];
         if (ECT != inECT) {
           sendWireMessage(5, inECT);
           ECT = inECT;
         }
         break;
       case 0x65:
-        inMAT = buf[0] << 8 + buf [1];
-        inOilT = buf[2] << 8 + buf [3];
+        inMAT = (buf[0] << 8) + buf [1];
+        inOilT = (buf[2] << 8) + buf [3];
         if (OilT != inOilT) {
           sendWireMessage(6, inOilT);
           OilT = inOilT;
         }
-        inFuelT = buf[4] << 8 + buf [5];
-        inOilP = buf[6] << 8 + buf [7];
+        inFuelT = (buf[4] << 8) + buf [5];
+        inOilP = (buf[6] << 8) + buf [7];
         if (OilP != inOilP) {
           sendWireMessage(7, inOilP);
           OilP = inOilP;
         }
         break;
       case 0x66:
-        inFuelP = buf[0] << 8 + buf [1];
+        inFuelP = (buf[0] << 8) + buf [1];
         if (FuelP != inFuelP) {
           sendWireMessage(8, inFuelP);
           FuelP = inFuelP;
         }
-        inDiffFuelP = buf[2] << 8 + buf [3];
-        inServoPos = buf[4] << 8 + buf [5];
-        inCoolantP = buf[6] << 8 + buf [7];
+        inDiffFuelP = (buf[2] << 8) + buf [3];
+        inServoPos = (buf[4] << 8) + buf [5];
+        inCoolantP = (buf[6] << 8) + buf [7];
         break;
       case 0x67:
-        inEthanol = buf[4] << 8 + buf [5];
+        inEthanol = (buf[4] << 8) + buf [5];
         if (Ethanol != inEthanol) {
           sendWireMessage(9, inEthanol);
           Ethanol = inEthanol;
         }
-        inVehicleSpeed = buf[6] << 8 + buf [7];
+        inVehicleSpeed = (buf[6] << 8) + buf [7];
         if (VehicleSpeed != inVehicleSpeed) {
           sendWireMessage(10, inVehicleSpeed);
           VehicleSpeed = inVehicleSpeed;
         }
         break;
       case 0x68:
-        inGearNumber = buf[0] << 8 + buf [1];
-        inSpdDiff = buf[6] << 8 + buf [7];
+        inGearNumber = (buf[0] << 8) + buf [1];
+        inSpdDiff = (buf[6] << 8) + buf [7];
         break;
       case 0x6C:
-        inFlagsLow = buf[4] << 8 + buf [5];
+        inFlagsLow = (buf[4] << 8) + buf [5];
         if (FlagsLow != inFlagsLow) {
           sendWireMessage(11, inFlagsLow);
           FlagsLow = inFlagsLow;
         }
-        inFlagsHigh = buf[6] << 8 + buf [7];
+        inFlagsHigh = (buf[6] << 8) + buf [7];
         if (FlagsHigh != inFlagsHigh) {
           sendWireMessage(11, inFlagsHigh);
           FlagsHigh = inFlagsHigh;
         }
         break;
       case 0x75:
-        inSlipLRGround = buf[0] << 8 + buf [1];
-        inKnockMax = buf[6] << 8 + buf [7];
+        inSlipLRGround = (buf[0] << 8) + buf [1];
+        inKnockMax = (buf[6] << 8) + buf [7];
         break;
       case 0x78:
-        inInj1Duty = buf[0] << 8 + buf [1];
-        inInj2Duty = buf[2] << 8 + buf [3];
-        inInj3Duty = buf[4] << 8 + buf [5];
-        inInj4Duty = buf[6] << 8 + buf [7];
+        inInj1Duty = (buf[0] << 8) + buf [1];
+        inInj2Duty = (buf[2] << 8) + buf [3];
+        inInj3Duty = (buf[4] << 8) + buf [5];
+        inInj4Duty = (buf[6] << 8) + buf [7];
         break;
       case 0x81:
-        inCalcChargTemp1 = buf[0] << 8 + buf [1];
-        inStoichRatio = buf[4] << 8 + buf [5];
-        inTargetLambda = buf[6] << 8 + buf [7];
+        inCalcChargTemp1 = (buf[0] << 8) + buf [1];
+        inStoichRatio = (buf[4] << 8) + buf [5];
+        inTargetLambda = (buf[6] << 8) + buf [7];
         break;
       case 0x8A:
-        inFuelInjDurOut1 = buf[4] << 8 + buf [5];
-        inFuelInjDurOut2 = buf[6] << 8 + buf [7];
+        inFuelInjDurOut1 = (buf[4] << 8) + buf [5];
+        inFuelInjDurOut2 = (buf[6] << 8) + buf [7];
         break;
       case 0xA3:
-        inIgnTiming = buf[0] << 8 + buf [1];
+        inIgnTiming = (buf[0] << 8) + buf [1];
         break;
       case 0xA5:
-        inAsyncInjDur1 = buf[0] << 8 + buf [1];
-        inAsyncInjDur2 = buf[4] << 8 + buf [5];
+        inAsyncInjDur1 = (buf[0] << 8) + buf [1];
+        inAsyncInjDur2 = (buf[4] << 8) + buf [5];
         break;
       case 0xAA:
-        inIdleEffortCL = buf[0] << 8 + buf [1];
-        inUnclippedIdleEffort = buf[4] << 8 + buf [5];
-        inIdleEffortDuty = buf[6] << 8 + buf [7];
+        inIdleEffortCL = (buf[0] << 8) + buf [1];
+        inUnclippedIdleEffort = (buf[4] << 8) + buf [5];
+        inIdleEffortDuty = (buf[6] << 8) + buf [7];
         break;
       case 0xB0:
-        inCuttingCond = buf[0] << 8 + buf [1];
-        inCurrentRPMLimit = buf[2] << 8 + buf [3];
-        inPitlaneRPMLimit = buf[4] << 8 + buf [5];
+        inCuttingCond = (buf[0] << 8) + buf [1];
+        inCurrentRPMLimit = (buf[2] << 8) + buf [3];
+        inPitlaneRPMLimit = (buf[4] << 8) + buf [5];
         break;
       case 0xB1:
-        inFuelCut = buf[4] << 8 + buf [5];
-        inIgnCut = buf[6] << 8 + buf [7];
+        inFuelCut = (buf[4] << 8) + buf [5];
+        inIgnCut = (buf[6] << 8) + buf [7];
         break;
     }
   }
