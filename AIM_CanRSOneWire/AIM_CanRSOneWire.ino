@@ -65,12 +65,7 @@ void loop() {
           sendWireMessage(1, inTwelveV);
           Twelve = inTwelveV;
 #if debug
-          Serial.print("TwelveV: ");
           Serial.println(Twelve); 
-          for (int i = 0; i < len; i++) {
-            Serial.print(buf[i], HEX);
-            Serial.print("\t");
-          }
 #endif
         }
         inFiveV = (buf[4] << 8) + buf [5];
@@ -114,6 +109,9 @@ void loop() {
         if (ECT != inECT) {
           sendWireMessage(5, inECT);
           ECT = inECT;
+#if debug
+          Serial.println(ECT);
+#endif
         }
         break;
       case 0x65:
@@ -122,6 +120,9 @@ void loop() {
         if (OilT != inOilT) {
           sendWireMessage(6, inOilT);
           OilT = inOilT;
+#if debug
+          Serial.println(OilT);
+#endif
         }
         inFuelT = (buf[4] << 8) + buf [5];
         inOilP = (buf[6] << 8) + buf [7];
@@ -129,12 +130,18 @@ void loop() {
           sendWireMessage(7, inOilP);
           OilP = inOilP;
         }
+#if debug
+          Serial.println(OilP);
+#endif
         break;
       case 0x66:
         inFuelP = (buf[0] << 8) + buf [1];
         if (FuelP != inFuelP) {
           sendWireMessage(8, inFuelP);
           FuelP = inFuelP;
+#if debug
+          Serial.println(FuelP);
+#endif
         }
         inDiffFuelP = (buf[2] << 8) + buf [3];
         inServoPos = (buf[4] << 8) + buf [5];
@@ -145,11 +152,17 @@ void loop() {
         if (Ethanol != inEthanol) {
           sendWireMessage(9, inEthanol);
           Ethanol = inEthanol;
+#if debug
+          Serial.println(Ethanol);
+#endif
         }
         inVehicleSpeed = (buf[6] << 8) + buf [7];
         if (VehicleSpeed != inVehicleSpeed) {
           sendWireMessage(10, inVehicleSpeed);
           VehicleSpeed = inVehicleSpeed;
+#if debug
+          Serial.println(VehicleSpeed);
+#endif
         }
         break;
       case 0x68:

@@ -2,25 +2,24 @@
 #include <RA8875.h>
 #include <Wire.h>
 #include "fonts/squarefont_14.c"
-/*
-  Arduino's
-  You are using 4 wire SPI here, so:
-  MOSI:  11//Arduino UNO
-  MISO:  12//Arduino UNO
-  SCK:   13//Arduino UNO
-  the rest of pin below:
-*/
+//  Arduino's - You are using 4 wire SPI here, so:
+//  MOSI:  11//Arduino UNO
+//  MISO:  12//Arduino UNO
+//  SCK:   13//Arduino UNO
 #define RA8875_CS 10 //see below...
 #define RA8875_RESET 9//any pin or nothing!
+#define debug 0
 
 RA8875 tft = RA8875(RA8875_CS, RA8875_RESET); //Teensy3/arduino's
 void setup() {
+#if debug
   Serial.begin(115200);
   Serial.println("Starting");
+#endif
 
   long unsigned debug_start = millis();
   tft.begin(RA8875_800x480);
-  tft.fillWindow(RA8875_BLACK);//fill window RED
+  tft.fillWindow(RA8875_BLACK);
   tft.setTextColor(RA8875_WHITE);
   tft.setFont(&squarefont_14);
   tft.showCursor(NOCURSOR, false);
@@ -46,7 +45,6 @@ void setup() {
   tft.setCursor(315, 325);
   tft.print("MAP");
   tft.brightness(125);
-  //SetTestValues();
   Wire.begin(8);
   Wire.onReceive(wireReceive);
 }
@@ -199,6 +197,8 @@ void UpdateMiles() {
 }
 
 void UpdateMPG(float MPG) {
+  if (!(MPG > 0 && MPG < 250))
+    MPG = 0;
   tft.setCursor(465, 365);
   tft.setFontScale(4);
   tft.fillRect(470, 385, 210, f2, RA8875_BLACK);
@@ -245,9 +245,11 @@ void wireReceive(int howMany) {
   byte id = Wire.read();
   byte high = Wire.read();
   byte low = Wire.read();
+#if debug
   Serial.print(id);
   Serial.print("\tValue:");
   Serial.println(high << 8 + low);
+#endif
   switch (id) {
     case 1:
       TwelveV = ((high << 8) + low) / 1000;
@@ -323,9 +325,8 @@ void loop() {
     UpdateMiles();
     UpdateMPG(temp / (InjFlowRate * 0.0000022));
   }
-  // delay(100);
+  // delay(50);
   //SetTestValues();
   UpdateDisplay();
-  //SetTestValues();
 }
 
