@@ -1,8 +1,8 @@
 #include <SPI.h>
 #include "mcp_can.h"
 #include "Wire.h"
-#define debug 0
-const int SPI_CS_PIN = 10;
+#define debug 1
+const int SPI_CS_PIN = 9;
 MCP_CAN CAN(SPI_CS_PIN);
 
 void setup() {
@@ -28,14 +28,14 @@ uint16_t inExtV, inTwelveV, inFiveV, inSGNDV, inRPM, inIMAP, inEMAP, inTPSOveral
          inFuelP, inDiffFuelP, inServoPos, inCoolantP, inEthanol, inVehicleSpeed, inGearNumber, inSpdDiff, inFlagsLow, inFlagsHigh, inSlipLRGround,
          inKnockMax, inInj1Duty, inInj2Duty, inInj3Duty, inInj4Duty, inCalcChargTemp1, inStoichRatio, inTargetLambda, inFuelInjDurOut1,
          inFuelInjDurOut2, inIgnTiming, inAsyncInjDur1, inAsyncInjDur2, inIdleEffortCL, inUnclippedIdleEffort, inIdleEffortDuty,
-         inCuttingCond, inCurrentRPMLimit, inPitlaneRPMLimit, inFuelCut, inIgnCut;
+         inCuttingCond, inCurrentRPMLimit, inPitlaneRPMLimit, inFuelCut, inIgnCut, inInjFlowRate;
 uint16_t  RPM = 1000, IMAP = 0, EMAP = 0, TPSOverall = 0, TPS1 = 0, Twelve, Lambda, FlagsLow,
           ECT = 0, MAT = 0, OilT = 0, FuelT = 0, OilP = 0, FuelP = 0, DiffFuelP = 0, ServoPos = 0,
-          CoolantP = 0, Ethanol = 0, VehicleSpeed = 0, GearNumber = 0, SpdDiff = 0, FlagsHigh = 0,
+          CoolantP = 0, Ethanol = 200, VehicleSpeed = 0, GearNumber = 0, SpdDiff = 0, FlagsHigh = 0,
           SlipLRGround = 0, KnockMax = 0, Inj1Duty = 0, Inj2Duty = 0, Inj3Duty = 0, Inj4Duty = 0, CalcChargTemp1 = 0,
           StoichRatio = 0, TargetLambda = 0, FuelInjDurOut1 = 0, FuelInjDurOut2 = 0, IgnTiming = 0,
           AsyncInjDur1 = 0, AsyncInjDur2 = 0, IdleEffortCL = 0, UnclippedIdleEffort = 0, IdleEffortDuty = 0,
-          CuttingCond = 0, CurrentRPMLimit = 0, PitlaneRPMLimit = 0, FuelCut = 0, IgnCut = 0, FuelL = 50;
+          CuttingCond = 0, CurrentRPMLimit = 0, PitlaneRPMLimit = 0, FuelCut = 0, IgnCut = 0, FuelL = 50, InjFlowRate = 0;
 
 void sendWireMessage(byte id, uint16_t value) {
   Wire.beginTransmission(8); // transmit to device #8
@@ -52,10 +52,10 @@ void loop() {
 #if debug
     Serial.print("-----------------------------\nCAN ID:\t");
     Serial.println(canId, HEX);
-//    for (int i = 0; i < len; i++) {
-//      Serial.print(buf[i], HEX);
-//      Serial.print("\t");
-//    }
+    //    for (int i = 0; i < len; i++) {
+    //      Serial.print(buf[i], HEX);
+    //      Serial.print("\t");
+    //    }
 #endif
     switch (canId) {
       case 0x04:
@@ -65,7 +65,7 @@ void loop() {
           sendWireMessage(1, inTwelveV);
           Twelve = inTwelveV;
 #if debug
-          Serial.println(Twelve); 
+          Serial.println(Twelve);
 #endif
         }
         inFiveV = (buf[4] << 8) + buf [5];
@@ -131,7 +131,7 @@ void loop() {
           OilP = inOilP;
         }
 #if debug
-          Serial.println(OilP);
+        Serial.println(OilP);
 #endif
         break;
       case 0x66:
@@ -152,10 +152,11 @@ void loop() {
         if (Ethanol != inEthanol) {
           sendWireMessage(9, inEthanol);
           Ethanol = inEthanol;
-#if debug
-          Serial.println(Ethanol);
-#endif
         }
+#if debug
+        Serial.println(Ethanol);
+#endif
+
         inVehicleSpeed = (buf[6] << 8) + buf [7];
         if (VehicleSpeed != inVehicleSpeed) {
           sendWireMessage(10, inVehicleSpeed);
@@ -196,9 +197,44 @@ void loop() {
         inStoichRatio = (buf[4] << 8) + buf [5];
         inTargetLambda = (buf[6] << 8) + buf [7];
         break;
+      case 0x84:
+        //inCalcChargTemp1 = (buf[0] << 8) + buf [1];
+        inInjFlowRate = (buf[4] << 8) + buf [5];
+        if (InjFlowRate != inInjFlowRate) {
+          sendWireMessage(13, inInjFlowRate);
+          InjFlowRate = inInjFlowRate;
+#if debug
+          Serial.println(InjFlowRate);
+#endif
+        }
+#if debug
+        Serial.println(InjFlowRate);
+#endif
+
+        break;
+
+      case 0x86: //TODO Change Vars
+        inInj1Duty = (buf[0] << 8) + buf [1];
+        inInj2Duty = (buf[2] << 8) + buf [3];
+        inInj3Duty = (buf[4] << 8) + buf [5];
+
+#if debug
+        Serial.println(inInj3Duty);
+#endif
+        inInj4Duty = (buf[6] << 8) + buf [7];
+        break;
       case 0x8A:
         inFuelInjDurOut1 = (buf[4] << 8) + buf [5];
         inFuelInjDurOut2 = (buf[6] << 8) + buf [7];
+        break;
+      case 0x96: //TODO Change Vars
+        inInj1Duty = (buf[0] << 8) + buf [1];
+        inInj2Duty = (buf[2] << 8) + buf [3];
+        inInj3Duty = (buf[4] << 8) + buf [5];
+        inInj4Duty = (buf[6] << 8) + buf [7];
+#if debug
+        Serial.println(inInj4Duty);
+#endif
         break;
       case 0xA3:
         inIgnTiming = (buf[0] << 8) + buf [1];

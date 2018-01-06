@@ -248,11 +248,11 @@ void wireReceive(int howMany) {
 #if debug
   Serial.print(id);
   Serial.print("\tValue:");
-  Serial.println(high << 8 + low);
+  Serial.println((high << 8) + low);
 #endif
   switch (id) {
     case 1:
-      TwelveV = ((high << 8) + low) / 1000;
+      TwelveV = (float((high << 8) + low)) / 1000;
       bTwelveV = true;
       break;
     case 2:
@@ -265,8 +265,6 @@ void wireReceive(int howMany) {
       break;
     case 4:
       Lambda = ((float)((high << 8) + low)) / 1000;
-          Serial.print("\nLambda: ");
-          Serial.println(Lambda);Serial.println(((high << 8) + low));
       bLambda = true;
       break;
     case 5:
@@ -286,8 +284,11 @@ void wireReceive(int howMany) {
       bFuelP = true;
       break;
     case 9:
-      Ethanol = ((high << 8) + low) / 10;
+      Ethanol = (float((high << 8) + low)) / 10;
       bEthanol = true;
+#if debug
+          Serial.println(Ethanol);
+#endif
       break;
     case 10:
       VehicleSpeed = ((high << 8) + low) / 10;
@@ -304,6 +305,9 @@ void wireReceive(int howMany) {
     case 13:
       InjFlowRate = ((high << 8) + low);
       bInjFlowRate = true;
+#if debug
+          Serial.println(InjFlowRate);
+#endif
       break;
   }
 
@@ -325,7 +329,7 @@ void loop() {
     UpdateMiles();
     UpdateMPG(temp / (InjFlowRate * 0.0000022));
   }
-  // delay(50);
+   delay(50);
   //SetTestValues();
   UpdateDisplay();
 }
