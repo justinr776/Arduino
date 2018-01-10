@@ -287,7 +287,7 @@ void wireReceive(int howMany) {
       Ethanol = (float((high << 8) + low)) / 10;
       bEthanol = true;
 #if debug
-          Serial.println(Ethanol);
+      Serial.println(Ethanol);
 #endif
       break;
     case 10:
@@ -306,8 +306,12 @@ void wireReceive(int howMany) {
       InjFlowRate = ((high << 8) + low);
       bInjFlowRate = true;
 #if debug
-          Serial.println(InjFlowRate);
+      Serial.println(InjFlowRate);
 #endif
+      break;
+    case 13:
+      FuelL = ((high << 8) + low);
+      bFuelL = true;
       break;
   }
 
@@ -329,7 +333,7 @@ void loop() {
     UpdateMiles();
     UpdateMPG(temp / (InjFlowRate * 0.0000022));
   }
-   delay(50);
+  delay(50);
   //SetTestValues();
   UpdateDisplay();
 }
