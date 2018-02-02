@@ -3,12 +3,11 @@
 #include "Wire.h"
 #define debug 1
 const int SPI_CS_PIN = 9;
-const int FUELPIN = A4;
+const int FUELPIN = A0;
 MCP_CAN CAN(SPI_CS_PIN);
 
 void setup() {
   pinMode(INPUT_PULLUP, FUELPIN);
-  attachInterrupt(readFuelLevel, 5000);
   
 #if debug
   Serial.begin(115200);
@@ -26,21 +25,9 @@ void setup() {
   Wire.begin();
 }
 
-void readFuelLevel(){
-  inFuelLevel = analogRead(FUELPIN);
-  FuelLevel = (inFuelLevel + ((inFuelLevel - FuelLevel) << 2)) <<3;
-#if debug
-  Serial.print("\nFuel Level: ");
-  Serial.println(inFuelLevel);
-  Serial.print("\nFuel Level Mod: ");
-  Serial.println(FuelLevel);
-#endif
-  sendWireMessage(14, FuelLevel);
-}
-
+int inFuelLevel = 0,FuelLevel = 0;
 byte len = 0; //unsigned char len = 0;
 byte buf[8]; //unsigned char buf[8];
-int infuelLevel = 0,FuelLevel = 0;
 uint16_t inExtV, inTwelveV, inFiveV, inSGNDV, inRPM, inIMAP, inEMAP, inTPSOverall, inTPS1, inLambda, inECT, inMAT, inOilT, inFuelT, inOilP,
          inFuelP, inDiffFuelP, inServoPos, inCoolantP, inEthanol, inVehicleSpeed, inGearNumber, inSpdDiff, inFlagsLow, inFlagsHigh, inSlipLRGround,
          inKnockMax, inInj1Duty, inInj2Duty, inInj3Duty, inInj4Duty, inCalcChargTemp1, inStoichRatio, inTargetLambda, inFuelInjDurOut1,
@@ -61,7 +48,7 @@ void sendWireMessage(byte id, uint16_t value) {
   Wire.write(value & 0xFF);
   Wire.endTransmission();
 }
-
+byte count = 0;
 void loop() {
   if (CAN_MSGAVAIL == CAN.checkReceive())  {
     CAN.readMsgBuf(&len, buf);    // read data,  len: data length, buf: data buf
@@ -276,5 +263,22 @@ void loop() {
         break;
     }
   }
+  count++;
+  if (count > 240){
+    readFuelLevel();
+    count = 0;
+  }
+}
+
+void readFuelLevel(){
+  inFuelLevel = analogRead(FUELPIN);
+  FuelLevel = (inFuelLevel >> 3);
+#if debug
+  Serial.print("\nFuel Level: ");
+  Serial.println(inFuelLevel);
+  Serial.print("\nFuel Level Mod: ");
+  Serial.println(FuelLevel);
+#endif
+  sendWireMessage(14, FuelLevel);
 }
 
