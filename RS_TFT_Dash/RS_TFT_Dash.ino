@@ -8,7 +8,7 @@
 //  SCK:   13//Arduino UNO
 #define RA8875_CS 10 //see below...
 #define RA8875_RESET 9//any pin or nothing!
-#define debug 0
+#define debug 1
 
 RA8875 tft = RA8875(RA8875_CS, RA8875_RESET); //Teensy3/arduino's
 void setup() {
@@ -309,7 +309,7 @@ void wireReceive(int howMany) {
       Serial.println(InjFlowRate);
 #endif
       break;
-    case 13:
+    case 14:
       FuelL = ((high << 8) + low);
       bFuelL = true;
       break;
