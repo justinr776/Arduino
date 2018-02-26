@@ -44,7 +44,7 @@ void setup() {
   tft.print("MPG");
   tft.setCursor(315, 325);
   tft.print("MAP");
-  tft.brightness(125);
+  tft.brightness(50);
   Wire.begin(8);
   Wire.onReceive(wireReceive);
 }
@@ -333,7 +333,7 @@ void loop() {
     UpdateMiles();
     UpdateMPG(temp / (InjFlowRate * 0.0000022));
   }
-  delay(50);
+  //delay(50);
   //SetTestValues();
   UpdateDisplay();
 }
