@@ -2,7 +2,7 @@
 #include <RA8875.h>
 #include <Wire.h>
 #include "fonts/squarefont_14.c"
-//  Arduino's - You are using 4 wire SPI here, so:
+#include "RotaryEncoderMenu.h"
 //  MOSI:  11//Arduino UNO
 //  MISO:  12//Arduino UNO
 //  SCK:   13//Arduino UNO
@@ -11,18 +11,12 @@
 #define debug 1
 
 RA8875 tft = RA8875(RA8875_CS, RA8875_RESET); //Teensy3/arduino's
-void setup() {
-#if debug
-  Serial.begin(115200);
-  Serial.println("Starting");
-#endif
 
-  long unsigned debug_start = millis();
-  tft.begin(RA8875_800x480);
-  tft.fillWindow(RA8875_BLACK);
+void MainDisplayText() {
   tft.setTextColor(RA8875_WHITE);
   tft.setFont(&squarefont_14);
   tft.showCursor(NOCURSOR, false);
+
   tft.setFontScale(2);
   tft.setCursor(5, 235);
   tft.print("OILP");
@@ -44,7 +38,18 @@ void setup() {
   tft.print("MPG");
   tft.setCursor(315, 325);
   tft.print("MAP");
+}
+
+void setup() {
+#if debug
+  Serial.begin(115200);
+  Serial.println("Starting");
+#endif
+  timing = millis();
+  tft.begin(RA8875_800x480);
+  tft.fillWindow(RA8875_BLACK);
   tft.brightness(50);
+  MainDisplayText();
   Wire.begin(8);
   Wire.onReceive(wireReceive);
 }
@@ -67,6 +72,7 @@ boolean bExtV = false, bTwelveV = false, bFiveV = false, bSGNDV = false, bRPM = 
         bAsyncInjDur1 = false, bAsyncInjDur2 = false, bIdleEffortCL = false, bUnclippedIdleEffort = false, bIdleEffortDuty = false,
         bCuttingCond = false, bCurrentRPMLimit = false, bPitlaneRPMLimit = false, bFuelCut = false, bIgnCut = false, bFuelL = false;
 int f1 = 26, f2 = 45, f3 = 63;
+unsigned long timing;
 
 void UpdateDisplay() {
   if (bRPM) {
@@ -90,16 +96,16 @@ void UpdateDisplay() {
     bRPM = false;
   }
   if (bVehicleSpeed) {
-    tft.setCursor(65, 83);
+    tft.setCursor(60, 83);
     tft.setFontScale(6);
-    tft.fillRect(72, 111, 150, f3, RA8875_BLACK);
+    tft.fillRect(60, 111, 205, f3, RA8875_BLACK); //72, 11, 150, f3
     tft.print(VehicleSpeed);
     bVehicleSpeed = false;
   }
   if (bLambda) { //.7 to 1.2
-    tft.setCursor(600, 83);
+    tft.setCursor(575, 83);//600
     tft.setFontScale(6);
-    tft.fillRect(607, 111, 175, f3, RA8875_BLACK);
+    tft.fillRect(582, 111, 217, f3, RA8875_BLACK);
     tft.print(Lambda);
     if (Lambda > 1.2)
       Lambda = 1.2;
@@ -135,12 +141,6 @@ void UpdateDisplay() {
     tft.print(OilP);
     bOilP = false;
   }
-  if (bIMAP) {
-    tft.setCursor(315, 265);
-    tft.setFontScale(4);
-    tft.fillRect(320, 285, 90, f2, RA8875_BLACK);
-    tft.print(IMAP);
-  }
   if (bFuelP) {
     tft.setCursor(5, 270);
     tft.setFontScale(4);
@@ -154,6 +154,12 @@ void UpdateDisplay() {
     tft.fillRect(10, 385, 145, f2, RA8875_BLACK);
     tft.print(TwelveV);
     bTwelveV = false;
+  }
+  if (bIMAP) {
+    tft.setCursor(315, 265);
+    tft.setFontScale(4);
+    tft.fillRect(320, 285, 90, f2, RA8875_BLACK);
+    tft.print(IMAP);
   }
   if (bFuelL) { //220, 280, 70w, 200
     int val = 200 - (FuelL << 1);
@@ -197,12 +203,12 @@ void UpdateMiles() {
 }
 
 void UpdateMPG(float MPG) {
-  if (!(MPG > 0 && MPG < 250))
-    MPG = 0;
-  tft.setCursor(465, 365);
-  tft.setFontScale(4);
-  tft.fillRect(470, 385, 210, f2, RA8875_BLACK);
-  tft.print(MPG);
+//  if (!(MPG > 0 && MPG < 250))
+//    MPG = 0;
+//  tft.setCursor(465, 365);
+//  tft.setFontScale(4);
+//  tft.fillRect(470, 385, 210, f2, RA8875_BLACK);
+//  tft.print(MPG);
 }
 
 boolean Lup = true;
@@ -253,6 +259,8 @@ void wireReceive(int howMany) {
   switch (id) {
     case 1:
       TwelveV = (float((high << 8) + low)) / 1000;
+      if (TwelveV > 19)
+        TwelveV = 19;
       bTwelveV = true;
       break;
     case 2:
@@ -291,7 +299,11 @@ void wireReceive(int howMany) {
 #endif
       break;
     case 10:
-      VehicleSpeed = ((high << 8) + low) / 10;
+      VehicleSpeed = VehicleSpeed = (uint16_t)((float)((high << 8) + low) / 10 * 0.62137119223733);
+      if (VehicleSpeed < 0) 
+        VehicleSpeed = 0; 
+      else if (VehicleSpeed > 299)
+        VehicleSpeed = 299; 
       bVehicleSpeed = true;
       break;
     case 11:
@@ -311,6 +323,10 @@ void wireReceive(int howMany) {
       break;
     case 14:
       FuelL = ((high << 8) + low);
+      if (FuelL < 0)
+        FuelL = 0;
+      else if (FuelL > 100)
+        FuelL = 100;
       bFuelL = true;
       break;
   }
@@ -331,10 +347,23 @@ void loop() {
     float temp = VehicleSpeed * 0.0001388;
     miles += temp;
     UpdateMiles();
-    UpdateMPG(temp / (InjFlowRate * 0.0000022));
+    //Need injector flow for this.
+    //UpdateMPG(temp / (InjFlowRate * 0.0000022));
   }
   //delay(50);
   //SetTestValues();
   UpdateDisplay();
+  if (millis() - timing > 120000) {
+    tft.fillWindow(RA8875_BLACK);
+    MainDisplayText();
+    bExtV = true; bTwelveV = true; bFiveV = true; bSGNDV = true; bRPM = true; bIMAP = true; bEMAP = true;
+    bTPSOverall = true; bTPS1 = true; bLambda = true;  bECT = true;  bMAT = true;  bOilT = true;  bFuelT = true;
+    bOilP = true;  bFuelP = true;  bDiffFuelP = true;  bServoPos = true;  bCoolantP = true;  bEthanol = true;  bInjFlowRate = true;
+    bVehicleSpeed = true;  bGearNumber = true;  bSpdDiff = true;  bFlagsLow = true;  bFlagsHigh = true;  bSlipLRGround = true;
+    bKnockMax = true;  bInj1Duty = true;  bInj2Duty = true;  bInj3Duty = true;  bInj4Duty = true;  bCalcChargTemp1 = true;
+    bStoichRatio = true;  bTargetLambda = true;  bFuelInjDurOut1 = true;  bFuelInjDurOut2 = true;  bIgnTiming = true;
+    bAsyncInjDur1 = true;  bAsyncInjDur2 = true;  bIdleEffortCL = true;  bUnclippedIdleEffort = true;  bIdleEffortDuty = true;
+    bCuttingCond = true;  bCurrentRPMLimit = true;  bPitlaneRPMLimit = true;  bFuelCut = true;  bIgnCut = true;  bFuelL = true;
+  }
 }
 
