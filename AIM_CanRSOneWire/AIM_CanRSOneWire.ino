@@ -8,7 +8,7 @@ MCP_CAN CAN(SPI_CS_PIN);
 
 void setup() {
   pinMode(INPUT_PULLUP, FUELPIN);
-  
+
 #if debug
   Serial.begin(115200);
 #endif
@@ -25,7 +25,7 @@ void setup() {
   Wire.begin();
 }
 
-int inFuelLevel = 0,FuelLevel = 0;
+int inFuelLevel = 0, FuelLevel = 0;
 byte len = 0; //unsigned char len = 0;
 byte buf[8]; //unsigned char buf[8];
 uint16_t inExtV, inTwelveV, inFiveV, inSGNDV, inRPM, inIMAP, inEMAP, inTPSOverall, inTPS1, inLambda, inECT, inMAT, inOilT, inFuelT, inOilP,
@@ -102,6 +102,10 @@ void loop() {
         break;
       case 0x64:
         inLambda = (buf[2] << 8) + buf [3];
+        if (inLambda < 0.5)
+          inLambda = 0.5;
+        if (inLambda > 1.5)
+          inLambda = 1.52;
         if (Lambda != inLambda) {
           sendWireMessage(4, inLambda);
           Lambda = inLambda;
@@ -121,6 +125,8 @@ void loop() {
       case 0x65:
         inMAT = (buf[0] << 8) + buf [1];
         inOilT = (buf[2] << 8) + buf [3];
+        if (inOilT == 655 || inOilT < 0)
+          inOilT = 0;
         if (OilT != inOilT) {
           sendWireMessage(6, inOilT);
           OilT = inOilT;
@@ -130,6 +136,8 @@ void loop() {
         }
         inFuelT = (buf[4] << 8) + buf [5];
         inOilP = (buf[6] << 8) + buf [7];
+        if (inOilP == 655 || inOilP < 0)
+          inOilP = 0;
         if (OilP != inOilP) {
           sendWireMessage(7, inOilP);
           OilP = inOilP;
@@ -263,15 +271,17 @@ void loop() {
     }
   }
   count++;
-  if (count > 240){
+  if (count > 240) {
     readFuelLevel();
     count = 0;
   }
 }
 
-void readFuelLevel(){
+int fuelLvl[4];// = new int[4];
+byte index = 0;
+void readFuelLevel() {
   inFuelLevel = analogRead(FUELPIN);
-  FuelLevel = (inFuelLevel / 3);
+  FuelLevel = 100 - (inFuelLevel / 3);
 #if debug
   Serial.print("\nFuel Level: ");
   Serial.println(inFuelLevel);
@@ -281,7 +291,12 @@ void readFuelLevel(){
   if (FuelLevel > 100)
     FuelLevel = 100;
   else if (FuelLevel < 0)
-  FuelLevel = 0;
-  sendWireMessage(14, FuelLevel);
+    FuelLevel = 0;
+  if (index > 3) { //Apply Smoothing to the fuel level
+    index = 0;
+    FuelLevel = (fuelLvl[0] + fuelLvl[1] + fuelLvl[2] + fuelLvl[3]) / 4;
+    sendWireMessage(14, FuelLevel);
+  } else
+    fuelLvl[index] = FuelLevel;
 }
 

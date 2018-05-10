@@ -12,6 +12,26 @@
 RA8875 tft = RA8875(RA8875_CS, RA8875_RESET); //Teensy3/arduino's
 //#include "RotaryEncoderMenu.h"
 
+uint16_t  RPM = 1000, PRPM = 0, TPSOverall = 0, TPS1 = 0, DiffFuelP = 0, ServoPos = 0, InjFlowRate = 0,
+          CoolantP = 0, VehicleSpeed = 0, GearNumber = 0, SpdDiff = 0, FlagsLow = 0, FlagsHigh = 0,
+          SlipLRGround = 0, KnockMax = 0, Inj1Duty = 0, Inj2Duty = 0, Inj3Duty = 0, Inj4Duty = 0, CalcChargTemp1 = 0,
+          StoichRatio = 0, TargetLambda = 0, FuelInjDurOut1 = 0, FuelInjDurOut2 = 0, IgnTiming = 0,
+          AsyncInjDur1 = 0, AsyncInjDur2 = 0, IdleEffortCL = 0, UnclippedIdleEffort = 0, IdleEffortDuty = 0,
+          CuttingCond = 0, CurrentRPMLimit = 0, PitlaneRPMLimit = 0, FuelCut = 0, IgnCut = 0, FuelL = 50;
+uint16_t ExtV = 0, FiveV = 0, SGNDV = 0,  IMAP = 0, EMAP = 0, ECT = 0, MAT = 0,
+         OilT = 0, FuelT = 0, OilP = 0, FuelP = 0, Ethanol = 0;
+float Lambda = 1, PLambda = 0,  TwelveV = 0, miles = 0;
+boolean bExtV = false, bTwelveV = false, bFiveV = false, bSGNDV = false, bRPM = false, bIMAP = false, bEMAP = false,
+        bTPSOverall = false, bTPS1 = false, bLambda = false, bECT = false, bMAT = false, bOilT = false, bFuelT = false,
+        bOilP = false, bFuelP = false, bDiffFuelP = false, bServoPos = false, bCoolantP = false, bEthanol = false, bInjFlowRate = false,
+        bVehicleSpeed = false, bGearNumber = false, bSpdDiff = false, bFlagsLow = false, bFlagsHigh = false, bSlipLRGround = false,
+        bKnockMax = false, bInj1Duty = false, bInj2Duty = false, bInj3Duty = false, bInj4Duty = false, bCalcChargTemp1 = false,
+        bStoichRatio = false, bTargetLambda = false, bFuelInjDurOut1 = false, bFuelInjDurOut2 = false, bIgnTiming = false,
+        bAsyncInjDur1 = false, bAsyncInjDur2 = false, bIdleEffortCL = false, bUnclippedIdleEffort = false, bIdleEffortDuty = false,
+        bCuttingCond = false, bCurrentRPMLimit = false, bPitlaneRPMLimit = false, bFuelCut = false, bIgnCut = false, bFuelL = false;
+int f1 = 26, f2 = 45, f3 = 63;
+unsigned long timing;
+
 void MainDisplayText() {
   tft.setTextColor(RA8875_WHITE);
   tft.setFont(&squarefont_14);
@@ -49,30 +69,11 @@ void setup() {
   tft.begin(RA8875_800x480);
   tft.fillWindow(RA8875_BLACK);
   tft.brightness(50);
+  EEPROM.get(0, miles);
   MainDisplayText();
   Wire.begin(8);
   Wire.onReceive(wireReceive);
 }
-
-uint16_t  RPM = 1000, PRPM = 0, TPSOverall = 0, TPS1 = 0, DiffFuelP = 0, ServoPos = 0, InjFlowRate = 0,
-          CoolantP = 0, VehicleSpeed = 0, GearNumber = 0, SpdDiff = 0, FlagsLow = 0, FlagsHigh = 0,
-          SlipLRGround = 0, KnockMax = 0, Inj1Duty = 0, Inj2Duty = 0, Inj3Duty = 0, Inj4Duty = 0, CalcChargTemp1 = 0,
-          StoichRatio = 0, TargetLambda = 0, FuelInjDurOut1 = 0, FuelInjDurOut2 = 0, IgnTiming = 0,
-          AsyncInjDur1 = 0, AsyncInjDur2 = 0, IdleEffortCL = 0, UnclippedIdleEffort = 0, IdleEffortDuty = 0,
-          CuttingCond = 0, CurrentRPMLimit = 0, PitlaneRPMLimit = 0, FuelCut = 0, IgnCut = 0, FuelL = 50;
-uint16_t ExtV = 0, FiveV = 0, SGNDV = 0,  IMAP = 0, EMAP = 0, ECT = 0, MAT = 0,
-         OilT = 0, FuelT = 0, OilP = 0, FuelP = 0, Ethanol = 0;
-float Lambda = 1, PLambda = 0,  TwelveV = 0, miles = 0;
-boolean bExtV = false, bTwelveV = false, bFiveV = false, bSGNDV = false, bRPM = false, bIMAP = false, bEMAP = false,
-        bTPSOverall = false, bTPS1 = false, bLambda = false, bECT = false, bMAT = false, bOilT = false, bFuelT = false,
-        bOilP = false, bFuelP = false, bDiffFuelP = false, bServoPos = false, bCoolantP = false, bEthanol = false, bInjFlowRate = false,
-        bVehicleSpeed = false, bGearNumber = false, bSpdDiff = false, bFlagsLow = false, bFlagsHigh = false, bSlipLRGround = false,
-        bKnockMax = false, bInj1Duty = false, bInj2Duty = false, bInj3Duty = false, bInj4Duty = false, bCalcChargTemp1 = false,
-        bStoichRatio = false, bTargetLambda = false, bFuelInjDurOut1 = false, bFuelInjDurOut2 = false, bIgnTiming = false,
-        bAsyncInjDur1 = false, bAsyncInjDur2 = false, bIdleEffortCL = false, bUnclippedIdleEffort = false, bIdleEffortDuty = false,
-        bCuttingCond = false, bCurrentRPMLimit = false, bPitlaneRPMLimit = false, bFuelCut = false, bIgnCut = false, bFuelL = false;
-int f1 = 26, f2 = 45, f3 = 63;
-unsigned long timing;
 
 void UpdateDisplay() {
   if (bRPM) {
@@ -330,6 +331,7 @@ void wireReceive(int howMany) {
 }
 
 long unsigned start;
+float mileCounter = 0;
 void loop() {
   /*if (millis() - start > 995) {
     start = millis();
@@ -342,6 +344,11 @@ void loop() {
     start = millis();
     float temp = VehicleSpeed * 0.0001388;
     miles += temp;
+    if (miles - mileCounter > 5){
+      // TODO Save miles to EEPROM
+      EEPROM.put(0,miles);
+      milesCounter = miles;
+    }
     UpdateMiles();
     //Need injector flow for this.
     //UpdateMPG(temp / (InjFlowRate * 0.0000022));
