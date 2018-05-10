@@ -2,7 +2,6 @@
 #include <RA8875.h>
 #include <Wire.h>
 #include "fonts/squarefont_14.c"
-#include "RotaryEncoderMenu.h"
 //  MOSI:  11//Arduino UNO
 //  MISO:  12//Arduino UNO
 //  SCK:   13//Arduino UNO
@@ -11,6 +10,7 @@
 #define debug 1
 
 RA8875 tft = RA8875(RA8875_CS, RA8875_RESET); //Teensy3/arduino's
+//#include "RotaryEncoderMenu.h"
 
 void MainDisplayText() {
   tft.setTextColor(RA8875_WHITE);
@@ -103,9 +103,9 @@ void UpdateDisplay() {
     bVehicleSpeed = false;
   }
   if (bLambda) { //.7 to 1.2
-    tft.setCursor(575, 83);//600
+    tft.setCursor(550, 83);//600
     tft.setFontScale(6);
-    tft.fillRect(582, 111, 217, f3, RA8875_BLACK);
+    tft.fillRect(557, 111, 243, f3, RA8875_BLACK);
     tft.print(Lambda);
     if (Lambda > 1.2)
       Lambda = 1.2;
@@ -323,10 +323,6 @@ void wireReceive(int howMany) {
       break;
     case 14:
       FuelL = ((high << 8) + low);
-      if (FuelL < 0)
-        FuelL = 0;
-      else if (FuelL > 100)
-        FuelL = 100;
       bFuelL = true;
       break;
   }

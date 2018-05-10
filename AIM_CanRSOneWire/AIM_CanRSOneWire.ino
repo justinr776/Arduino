@@ -202,7 +202,6 @@ void loop() {
         inTargetLambda = (buf[6] << 8) + buf [7];
         break;
       case 0x84:
-        //inCalcChargTemp1 = (buf[0] << 8) + buf [1];
         inInjFlowRate = (buf[4] << 8) + buf [5];
         if (InjFlowRate != inInjFlowRate) {
           sendWireMessage(13, inInjFlowRate);
@@ -272,13 +271,17 @@ void loop() {
 
 void readFuelLevel(){
   inFuelLevel = analogRead(FUELPIN);
-  FuelLevel = (inFuelLevel >> 3);
+  FuelLevel = (inFuelLevel / 3);
 #if debug
   Serial.print("\nFuel Level: ");
   Serial.println(inFuelLevel);
   Serial.print("\nFuel Level Mod: ");
   Serial.println(FuelLevel);
 #endif
+  if (FuelLevel > 100)
+    FuelLevel = 100;
+  else if (FuelLevel < 0)
+  FuelLevel = 0;
   sendWireMessage(14, FuelLevel);
 }
 
