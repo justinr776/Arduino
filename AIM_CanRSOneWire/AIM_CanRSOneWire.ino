@@ -299,7 +299,8 @@ void readFuelLevel() {
     index = 0;
     FuelLevel = (fuelLvl[0] + fuelLvl[1] + fuelLvl[2] + fuelLvl[3]) / 4;
     sendWireMessage(14, FuelLevel);
-  } else
+  } else{
     fuelLvl[index] = FuelLevel;
-}
+    index++;
+}}
 
