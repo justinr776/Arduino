@@ -1,3 +1,4 @@
+#include <EEPROM.h>
 #include <SPI.h>
 #include <RA8875.h>
 #include <Wire.h>
@@ -17,7 +18,7 @@ uint16_t  RPM = 1000, PRPM = 0, TPSOverall = 0, TPS1 = 0, DiffFuelP = 0, ServoPo
           SlipLRGround = 0, KnockMax = 0, Inj1Duty = 0, Inj2Duty = 0, Inj3Duty = 0, Inj4Duty = 0, CalcChargTemp1 = 0,
           StoichRatio = 0, TargetLambda = 0, FuelInjDurOut1 = 0, FuelInjDurOut2 = 0, IgnTiming = 0,
           AsyncInjDur1 = 0, AsyncInjDur2 = 0, IdleEffortCL = 0, UnclippedIdleEffort = 0, IdleEffortDuty = 0,
-          CuttingCond = 0, CurrentRPMLimit = 0, PitlaneRPMLimit = 0, FuelCut = 0, IgnCut = 0, FuelL = 50;
+          CuttingCond = 0, CurrentRPMLimit = 0, PitlaneRPMLimit = 0, FuelCut = 0, IgnCut = 0, FuelL = 50, CruiseSpeed = 0, CruiseState = 0;
 uint16_t ExtV = 0, FiveV = 0, SGNDV = 0,  IMAP = 0, EMAP = 0, ECT = 0, MAT = 0,
          OilT = 0, FuelT = 0, OilP = 0, FuelP = 0, Ethanol = 0;
 float Lambda = 1, PLambda = 0,  TwelveV = 0, miles = 0;
@@ -28,7 +29,8 @@ boolean bExtV = false, bTwelveV = false, bFiveV = false, bSGNDV = false, bRPM = 
         bKnockMax = false, bInj1Duty = false, bInj2Duty = false, bInj3Duty = false, bInj4Duty = false, bCalcChargTemp1 = false,
         bStoichRatio = false, bTargetLambda = false, bFuelInjDurOut1 = false, bFuelInjDurOut2 = false, bIgnTiming = false,
         bAsyncInjDur1 = false, bAsyncInjDur2 = false, bIdleEffortCL = false, bUnclippedIdleEffort = false, bIdleEffortDuty = false,
-        bCuttingCond = false, bCurrentRPMLimit = false, bPitlaneRPMLimit = false, bFuelCut = false, bIgnCut = false, bFuelL = false;
+        bCuttingCond = false, bCurrentRPMLimit = false, bPitlaneRPMLimit = false, bFuelCut = false, bIgnCut = false, bFuelL = false,
+        bCruiseSpeed = false, bCruiseState = false;
 int f1 = 26, f2 = 45, f3 = 63;
 unsigned long timing;
 
@@ -194,6 +196,29 @@ void UpdateDisplay() {
     tft.print(Ethanol);
     bEthanol = false;
   }
+  if (bCruiseSpeed) {
+    tft.setCursor(455, 265);
+    tft.setFontScale(4);
+    tft.fillRect(460, 285, 90, f2, RA8875_BLACK);
+    tft.print(CruiseSpeed);
+    bCruiseState = true;
+  }
+  if (bCruiseState) {
+    tft.setCursor(455, 265);
+    tft.setFontScale(2);
+    if (CruiseState == 0)
+      tft.setTextColor(RA8875_BLACK);
+    else if (CruiseState == 1)
+      tft.setTextColor(RA8875_CYAN);
+    else if (CruiseState == 2)
+      tft.setTextColor(RA8875_YELLOW);
+    else if (CruiseState == 3)
+      tft.setTextColor(RA8875_GREEN);
+    tft.fillRect(460, 345, 120, f1, RA8875_BLACK);
+    tft.setCursor(460, 325);
+    tft.print("Cruise");
+    tft.setTextColor(RA8875_BLACK);
+  }
 }
 
 void UpdateMiles() {
@@ -204,12 +229,12 @@ void UpdateMiles() {
 }
 
 void UpdateMPG(float MPG) {
-//  if (!(MPG > 0 && MPG < 250))
-//    MPG = 0;
-//  tft.setCursor(465, 365);
-//  tft.setFontScale(4);
-//  tft.fillRect(470, 385, 210, f2, RA8875_BLACK);
-//  tft.print(MPG);
+  //  if (!(MPG > 0 && MPG < 250))
+  //    MPG = 0;
+  //  tft.setCursor(465, 365);
+  //  tft.setFontScale(4);
+  //  tft.fillRect(470, 385, 210, f2, RA8875_BLACK);
+  //  tft.print(MPG);
 }
 
 boolean Lup = true;
@@ -300,11 +325,11 @@ void wireReceive(int howMany) {
 #endif
       break;
     case 10:
-      VehicleSpeed = VehicleSpeed = (uint16_t)((float)((high << 8) + low) / 10 * 0.62137119223733);
-      if (VehicleSpeed < 0) 
-        VehicleSpeed = 0; 
+      VehicleSpeed = (uint16_t)((float)((high << 8) + low) / 10 * 0.62137119223733);
+      if (VehicleSpeed < 0)
+        VehicleSpeed = 0;
       else if (VehicleSpeed > 299)
-        VehicleSpeed = 299; 
+        VehicleSpeed = 299;
       bVehicleSpeed = true;
       break;
     case 11:
@@ -326,7 +351,19 @@ void wireReceive(int howMany) {
       FuelL = ((high << 8) + low);
       bFuelL = true;
       break;
-  }
+    case 15:
+      CruiseState = ((high << 8) + low);
+      bCruiseState = true;
+      break;
+    case 16:
+        CruiseSpeed = (uint16_t)((float)((high << 8) + low) / 10 * 0.62137119223733);
+        if (CruiseSpeed < 0)
+        CruiseSpeed = 0;
+        else if (CruiseSpeed > 299)
+          CruiseSpeed = 299;
+          bCruiseSpeed = true;
+          break;
+        }
 
 }
 
@@ -344,10 +381,10 @@ void loop() {
     start = millis();
     float temp = VehicleSpeed * 0.0001388;
     miles += temp;
-    if (miles - mileCounter > 5){
+    if (miles - mileCounter > 5) {
       // TODO Save miles to EEPROM
-      EEPROM.put(0,miles);
-      milesCounter = miles;
+      EEPROM.put(0, miles);
+      mileCounter = miles;
     }
     UpdateMiles();
     //Need injector flow for this.

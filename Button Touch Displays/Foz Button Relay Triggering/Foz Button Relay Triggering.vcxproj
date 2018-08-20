@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{C5F80730-F44F-4478-BDAE-6634EFC2CA88}</ProjectGuid>
+    <ProjectGuid>{E320D3A9-74EF-4649-A836-B32FA83F2EC6}</ProjectGuid>
     <RootNamespace>Foz_Button_Relay_Triggering</RootNamespace>
     <ProjectName>Foz Button Relay Triggering</ProjectName>
   </PropertyGroup>
