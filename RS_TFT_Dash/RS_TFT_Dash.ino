@@ -24,7 +24,7 @@ uint16_t ExtV = 0, FiveV = 0, SGNDV = 0,  IMAP = 0, EMAP = 0, ECT = 0, MAT = 0,
 float Lambda = 1, PLambda = 0,  TwelveV = 0, miles = 0;
 boolean bExtV = false, bTwelveV = false, bFiveV = false, bSGNDV = false, bRPM = false, bIMAP = false, bEMAP = false,
         bTPSOverall = false, bTPS1 = false, bLambda = false, bECT = false, bMAT = false, bOilT = false, bFuelT = false,
-        bOilP = false, bFuelP = false, bDiffFuelP = false, bServoPos = false, bCoolantP = false, bEthanol = false, bInjFlowRate = false,
+        bOilP = false, bFuelP = false, bDiffFuelP = false, bServoPos = false, bCoolantP = false, bEthanol = true, bInjFlowRate = false,
         bVehicleSpeed = false, bGearNumber = false, bSpdDiff = false, bFlagsLow = false, bFlagsHigh = false, bSlipLRGround = false,
         bKnockMax = false, bInj1Duty = false, bInj2Duty = false, bInj3Duty = false, bInj4Duty = false, bCalcChargTemp1 = false,
         bStoichRatio = false, bTargetLambda = false, bFuelInjDurOut1 = false, bFuelInjDurOut2 = false, bIgnTiming = false,
@@ -279,11 +279,6 @@ void wireReceive(int howMany) {
   byte id = Wire.read();
   byte high = Wire.read();
   byte low = Wire.read();
-#if debug
-  Serial.print(id);
-  Serial.print("\tValue:");
-  Serial.println((high << 8) + low);
-#endif
   switch (id) {
     case 1:
       TwelveV = (float((high << 8) + low)) / 1000;
@@ -302,6 +297,10 @@ void wireReceive(int howMany) {
     case 4:
       Lambda = ((float)((high << 8) + low)) / 1000;
       bLambda = true;
+      if (Lambda < 0.5)
+        Lambda = 0.5;
+      if (Lambda > 1.5)
+        Lambda = 1.52;
       break;
     case 5:
       ECT = ((high << 8) + low) / 10;
@@ -322,9 +321,6 @@ void wireReceive(int howMany) {
     case 9:
       Ethanol = (float((high << 8) + low)) / 10;
       bEthanol = true;
-#if debug
-      Serial.println(Ethanol);
-#endif
       break;
     case 10:
       VehicleSpeed = (uint16_t)((float)((high << 8) + low) / 10 * 0.62137119223733);

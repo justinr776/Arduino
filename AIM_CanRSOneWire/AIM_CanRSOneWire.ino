@@ -56,8 +56,8 @@ void loop() {
     CAN.readMsgBuf(&len, buf);    // read data,  len: data length, buf: data buf
     unsigned char canId = CAN.getCanId();
 #if debug
-    Serial.print("-----------------------------\nCAN ID:\t");
-    Serial.println(canId, HEX);
+//    Serial.print("-----------------------------\nCAN ID:\t");
+//    Serial.println(canId, HEX);
     //    for (int i = 0; i < len; i++) {
     //      Serial.print(buf[i], HEX);
     //      Serial.print("\t");
@@ -95,10 +95,6 @@ void loop() {
         break;
       case 0x64:
         inLambda = (buf[2] << 8) + buf [3];
-        if (inLambda < 0.5)
-          inLambda = 0.5;
-        if (inLambda > 1.5)
-          inLambda = 1.52;
         if (Lambda != inLambda) {
           sendWireMessage(4, inLambda);
           Lambda = inLambda;
@@ -186,7 +182,7 @@ void loop() {
           sendWireMessage(13, inInjFlowRate);
           InjFlowRate = inInjFlowRate;
 #if debug
-          Serial.println(InjFlowRate);
+//          Serial.println(InjFlowRate);
 #endif
         }
         break;
@@ -248,10 +244,10 @@ void readFuelLevel() {
   inFuelLevel = analogRead(FUELPIN);
   FuelLevel = 100 - (inFuelLevel / 3);
 #if debug
-  Serial.print("\nFuel Level: ");
-  Serial.println(inFuelLevel);
-  Serial.print("\nFuel Level Mod: ");
-  Serial.println(FuelLevel);
+//  Serial.print("\nFuel Level: ");
+//  Serial.println(inFuelLevel);
+//  Serial.print("\nFuel Level Mod: ");
+//  Serial.println(FuelLevel);
 #endif
   if (FuelLevel > 100)
     FuelLevel = 100;
