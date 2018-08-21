@@ -72,6 +72,8 @@ void setup() {
   tft.fillWindow(RA8875_BLACK);
   tft.brightness(50);
   EEPROM.get(0, miles);
+  if (isnan(miles))
+    miles = 0;
   MainDisplayText();
   Wire.begin(8);
   Wire.onReceive(wireReceive);
@@ -356,14 +358,14 @@ void wireReceive(int howMany) {
       bCruiseState = true;
       break;
     case 16:
-        CruiseSpeed = (uint16_t)((float)((high << 8) + low) / 10 * 0.62137119223733);
-        if (CruiseSpeed < 0)
+      CruiseSpeed = (uint16_t)((float)((high << 8) + low) / 10 * 0.62137119223733);
+      if (CruiseSpeed < 0)
         CruiseSpeed = 0;
-        else if (CruiseSpeed > 299)
-          CruiseSpeed = 299;
-          bCruiseSpeed = true;
-          break;
-        }
+      else if (CruiseSpeed > 299)
+        CruiseSpeed = 299;
+      bCruiseSpeed = true;
+      break;
+  }
 
 }
 
@@ -394,6 +396,7 @@ void loop() {
   //SetTestValues();
   UpdateDisplay();
   if (millis() - timing > 120000) {
+    timing = millis();
     tft.fillWindow(RA8875_BLACK);
     MainDisplayText();
     bExtV = true; bTwelveV = true; bFiveV = true; bSGNDV = true; bRPM = true; bIMAP = true; bEMAP = true;

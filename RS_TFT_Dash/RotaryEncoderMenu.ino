@@ -1,9 +1,9 @@
 #include "RotaryEncoderMenu.h"
 int button_press = 0;
 byte displaySet = -1;
-static const int encoder0PinA = 2;
-static const int encoder0PinB = 3;
-static const int encoderbutton = 6;
+//static const int encoder0PinA = 2;
+//static const int encoder0PinB = 3;
+//static const int encoderbutton = 6;
 volatile byte aFlag = 0, bFlag = 0;
 volatile byte encoderPos = 0; //this variable stores our current value of encoder position. Change to int or uin16_t instead of byte if you want to record a larger range than 0-255
 volatile byte oldEncPos = 0; //stores the last encoder position value so we can compare to the current reading and see if it has changed (so we know when to print to the serial monitor)
@@ -16,7 +16,7 @@ boolean buttonPressed = 0; // a flag variable
 byte displayMode = 0;   // This is which menu mode we are in at any given time (top level or one of the submenus)
 byte modeMax = 3; // This is the number of submenus/settings you want
 int dotSpace = 25;
-int f1 = 26, f2 = 45, f3 = 63; //TODO remove once merged
+//int f1 = 26, f2 = 45, f3 = 63; //TODO remove once merged
 
 //Rotary encoder interrupt service routine for one encoder pin
 void PinA() {
@@ -48,12 +48,12 @@ void setDot(byte pos) {
   pos++;
   Serial.print("Dot Pos: ");
   Serial.print(pos);
-  tft.fillRect(0, 0, 600, dotSpace);
-  tft.fillRect(8, pos * 17 + pos * 10, 10, 10);
+  tft.fillRect(0, 0, 600, dotSpace, RA8875_BLACK);
+  tft.fillRect(8, pos * 17 + pos * 10, 10, 10, RA8875_RED);
 }
 
 void displayValue(){
-  tft.fillRect(700,0, 100, 45);
+  tft.fillRect(700,0, 100, 45, RA8875_BLACK);
   tft.setCursor(700,0);
   tft.print(encoderPos);
 }

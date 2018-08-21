@@ -49,6 +49,7 @@ void sendWireMessage(byte id, uint16_t value) {
   Wire.write(value & 0xFF);
   Wire.endTransmission();
 }
+
 byte count = 0;
 void loop() {
   if (CAN_MSGAVAIL == CAN.checkReceive())  {
@@ -69,9 +70,6 @@ void loop() {
         if (Twelve != inTwelveV) {
           sendWireMessage(1, inTwelveV);
           Twelve = inTwelveV;
-#if debug
-          Serial.println(Twelve);
-#endif
         }
         inFiveV = (buf[4] << 8) + buf [5];
         inSGNDV = (buf[6] << 8) + buf [7];
@@ -81,9 +79,6 @@ void loop() {
         if (inRPM != RPM) {
           sendWireMessage(2, inRPM);
           RPM = inRPM;
-#if debug
-          Serial.println(RPM);
-#endif
         }
         break;
       case 0x61:
@@ -91,9 +86,6 @@ void loop() {
         if (IMAP != inIMAP) {
           sendWireMessage(3, inIMAP);
           IMAP = inIMAP;
-#if debug
-          Serial.println(IMAP);
-#endif
         }
         inEMAP = (buf[4] << 8) + buf [5];
         break;
@@ -110,17 +102,11 @@ void loop() {
         if (Lambda != inLambda) {
           sendWireMessage(4, inLambda);
           Lambda = inLambda;
-#if debug
-          Serial.println(Lambda);
-#endif
         }
         inECT = (buf[6] << 8) + buf [7];
         if (ECT != inECT) {
           sendWireMessage(5, inECT);
           ECT = inECT;
-#if debug
-          Serial.println(ECT);
-#endif
         }
         break;
       case 0x65:
@@ -131,9 +117,6 @@ void loop() {
         if (OilT != inOilT) {
           sendWireMessage(6, inOilT);
           OilT = inOilT;
-#if debug
-          Serial.println(OilT);
-#endif
         }
         inFuelT = (buf[4] << 8) + buf [5];
         inOilP = (buf[6] << 8) + buf [7];
@@ -143,18 +126,12 @@ void loop() {
           sendWireMessage(7, inOilP);
           OilP = inOilP;
         }
-#if debug
-        Serial.println(OilP);
-#endif
         break;
       case 0x66:
         inFuelP = (buf[0] << 8) + buf [1];
         if (FuelP != inFuelP) {
           sendWireMessage(8, inFuelP);
           FuelP = inFuelP;
-#if debug
-          Serial.println(FuelP);
-#endif
         }
         inDiffFuelP = (buf[2] << 8) + buf [3];
         inServoPos = (buf[4] << 8) + buf [5];
@@ -166,17 +143,10 @@ void loop() {
           sendWireMessage(9, inEthanol);
           Ethanol = inEthanol;
         }
-#if debug
-        Serial.println(Ethanol);
-#endif
-
         inVehicleSpeed = (buf[6] << 8) + buf [7];
         if (VehicleSpeed != inVehicleSpeed) {
           sendWireMessage(10, inVehicleSpeed);
           VehicleSpeed = inVehicleSpeed;
-#if debug
-          Serial.println(VehicleSpeed);
-#endif
         }
         break;
       case 0x68:
@@ -219,19 +189,11 @@ void loop() {
           Serial.println(InjFlowRate);
 #endif
         }
-#if debug
-        Serial.println(InjFlowRate);
-#endif
-
         break;
       case 0x86: //TODO Change Vars
         inInj1Duty = (buf[0] << 8) + buf [1];
         inInj2Duty = (buf[2] << 8) + buf [3];
         inInj3Duty = (buf[4] << 8) + buf [5];
-
-#if debug
-        Serial.println(inInj3Duty);
-#endif
         inInj4Duty = (buf[6] << 8) + buf [7];
         break;
       case 0x8A:
@@ -261,14 +223,14 @@ void loop() {
         break;
       case 0xB5:
         inCruiseState = (buf[2] << 8) + buf [3];
-        if (inCruiseState != CruiseState){          
-            sendWireMessage(15, inCruiseState);
-            CruiseState = inCruiseState;
+        if (inCruiseState != CruiseState) {
+          sendWireMessage(15, inCruiseState);
+          CruiseState = inCruiseState;
         }
-        inCruiseSpeed = (buf[4] << 8) + buf [5];        
-        if (inCruiseSpeed != CruiseSpeed){          
-            sendWireMessage(16, inCruiseSpeed);
-            CruiseState = inCruiseState;
+        inCruiseSpeed = (buf[4] << 8) + buf [5];
+        if (inCruiseSpeed != CruiseSpeed) {
+          sendWireMessage(16, inCruiseSpeed);
+          CruiseState = inCruiseState;
         }
         break;
     }
@@ -299,8 +261,9 @@ void readFuelLevel() {
     index = 0;
     FuelLevel = (fuelLvl[0] + fuelLvl[1] + fuelLvl[2] + fuelLvl[3]) / 4;
     sendWireMessage(14, FuelLevel);
-  } else{
+  } else {
     fuelLvl[index] = FuelLevel;
     index++;
-}}
+  }
+}
 

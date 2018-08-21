@@ -17,7 +17,7 @@ byte modeMax = 3; // This is the number of submenus/settings you want
 int dotSpace = 25;
 int f1 = 26, f2 = 45, f3 = 63; //TODO remove once merged
 
-#include "RotaryEncoderMenu.h"
+#include "RotaryEncoderMenu.h";
 
 //Rotary encoder interrupt service routine for one encoder pin
 void PinA() {
