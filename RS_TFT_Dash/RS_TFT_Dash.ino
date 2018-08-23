@@ -21,7 +21,7 @@ uint16_t  RPM = 1000, PRPM = 0, TPSOverall = 0, TPS1 = 0, DiffFuelP = 0, ServoPo
           CuttingCond = 0, CurrentRPMLimit = 0, PitlaneRPMLimit = 0, FuelCut = 0, IgnCut = 0, FuelL = 50, CruiseSpeed = 0, CruiseState = 0;
 uint16_t ExtV = 0, FiveV = 0, SGNDV = 0,  IMAP = 0, EMAP = 0, ECT = 0, MAT = 0,
          OilT = 0, FuelT = 0, OilP = 0, FuelP = 0, Ethanol = 0;
-float Lambda = 1, PLambda = 0,  TwelveV = 0, miles = 0;
+float Lambda = 1, PLambda = 0,  TwelveV = 0, miles = 0, mileCounter = 0;
 boolean bExtV = false, bTwelveV = false, bFiveV = false, bSGNDV = false, bRPM = false, bIMAP = false, bEMAP = false,
         bTPSOverall = false, bTPS1 = false, bLambda = false, bECT = false, bMAT = false, bOilT = false, bFuelT = false,
         bOilP = false, bFuelP = false, bDiffFuelP = false, bServoPos = false, bCoolantP = false, bEthanol = true, bInjFlowRate = false,
@@ -74,6 +74,7 @@ void setup() {
   EEPROM.get(0, miles);
   if (isnan(miles))
     miles = 0;
+  mileCounter = miles;
   MainDisplayText();
   Wire.begin(8);
   Wire.onReceive(wireReceive);
@@ -203,7 +204,7 @@ void UpdateDisplay() {
     tft.setFontScale(4);
     tft.fillRect(460, 285, 90, f2, RA8875_BLACK);
     tft.print(CruiseSpeed);
-    bCruiseState = true;
+    bCruiseSpeed = false;
   }
   if (bCruiseState) {
     tft.setCursor(455, 265);
@@ -218,14 +219,16 @@ void UpdateDisplay() {
       tft.setTextColor(RA8875_GREEN);
     tft.fillRect(460, 345, 120, f1, RA8875_BLACK);
     tft.setCursor(460, 325);
-    tft.print("Cruise");
+    tft.print("CRUISE");
+    tft.setFontScale(4);
     tft.setTextColor(RA8875_BLACK);
+    bCruiseState = false;
   }
 }
 
 void UpdateMiles() {
   tft.setCursor(315, 365);
-  tft.setFontScale(4);
+  tft.setFontScale(3);
   tft.fillRect(320, 385, 150, f2, RA8875_BLACK);
   tft.print(miles);
 }
@@ -366,7 +369,6 @@ void wireReceive(int howMany) {
 }
 
 long unsigned start;
-float mileCounter = 0;
 void loop() {
   /*if (millis() - start > 995) {
     start = millis();
@@ -379,7 +381,7 @@ void loop() {
     start = millis();
     float temp = VehicleSpeed * 0.0001388;
     miles += temp;
-    if (miles - mileCounter > 5) {
+    if (miles - mileCounter > 3) {
       // TODO Save miles to EEPROM
       EEPROM.put(0, miles);
       mileCounter = miles;
