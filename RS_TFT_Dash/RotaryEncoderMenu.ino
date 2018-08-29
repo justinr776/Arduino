@@ -1,9 +1,6 @@
 #include "RotaryEncoderMenu.h"
 int button_press = 0;
 byte displaySet = -1;
-//static const int encoder0PinA = 2;
-//static const int encoder0PinB = 3;
-//static const int encoderbutton = 6;
 volatile byte aFlag = 0, bFlag = 0;
 volatile byte encoderPos = 0; //this variable stores our current value of encoder position. Change to int or uin16_t instead of byte if you want to record a larger range than 0-255
 volatile byte oldEncPos = 0; //stores the last encoder position value so we can compare to the current reading and see if it has changed (so we know when to print to the serial monitor)
@@ -15,6 +12,7 @@ boolean buttonPressed = 0; // a flag variable
 // Menu and submenu/setting declarations
 byte displayMode = 0;   // This is which menu mode we are in at any given time (top level or one of the submenus)
 byte modeMax = 3; // This is the number of submenus/settings you want
+byte firstButtonPress = 0;
 int dotSpace = 25;
 //int f1 = 26, f2 = 45, f3 = 63; //TODO remove once merged
 
@@ -52,9 +50,10 @@ void setDot(byte pos) {
   tft.fillRect(8, pos * 17 + pos * 10, 10, 10, RA8875_RED);
 }
 
-void displayValue(){
-  tft.fillRect(700,0, 100, 45, RA8875_BLACK);
-  tft.setCursor(700,0);
+void displayValue() {
+  tft.setFontScale(4);
+  tft.fillRect(700, 0, 100, 45, RA8875_BLACK);
+  tft.setCursor(700, 0);
   tft.print(encoderPos);
 }
 
@@ -69,7 +68,72 @@ void mainMenu() {
   tft.setCursor(dotSpace, 55);
   tft.print("RESET TRIP");
   tft.setCursor(dotSpace, 110);
-  tft.print("DCCD");
+  tft.print("EXIT");
+}
+
+void tRotaryMenu() {
+  if (oldEncPos != encoderPos) {
+    oldEncPos = encoderPos;
+    if (displayMode > 0)
+      displayValue();
+    if (displayMode = 1)
+    tft.brightness(encoderPos);
+  }
+  byte buttonState = digitalRead (encoderbutton);
+  if (buttonState != oldButtonState) {
+    if (millis () - buttonPressTime >= debounceTime) { // debounce
+      buttonPressTime = millis ();
+      oldButtonState =  buttonState;
+      if (buttonState == LOW) {
+        buttonPressed = 1;
+      }
+      else {
+        buttonPressed = 0;
+      }
+    }  // end if debounce time up
+  } // end of state change
+  if (displayMode == -1 && buttonPressed){
+    displayMode = 0;
+    buttonPressed = 0;
+  }
+  //Main menu section
+  if (displayMode == 0) {
+    if (encoderPos < 0)
+      encoderPos = modeMax; // check we haven't gone out of bounds below 0 and correct if we have
+    else if (encoderPos > modeMax)
+      encoderPos = 0; // check we haven't gone out of bounds above modeMax and correct if we have
+    if (buttonPressed) {
+      displayMode = encoderPos; // set the Mode to the current value of input if button has been pressed
+    }else{
+        setDot(encoderPos); 
+        mainMenu();
+      }
+      buttonPressed = 0; // reset the button status so one press results in one action
+      if (displayMode == 1) {// Display Brightness
+        encoderPos = 55;
+        modeMax = 255;
+      } else if (displayMode == 2) {//Trip Reset
+        modeMax = 2;
+      } else if (displayMode == 3) {//Exit
+        modeMax = 2;
+      }
+  }
+  if (displayMode == 1 && buttonPressed) {
+    tft.brightness(encoderPos);
+    modeMax = 3;
+  } else if (displayMode == 2 && buttonPressed) {
+    if (encoderPos == 1) {
+      miles = 0;
+      mileCounter = 0;
+      EEPROM.put(0, miles);
+      buttonPressed = 0;
+      UpdateMiles();
+    }
+    modeMax = 3;
+  } else if (displayMode == 3 && buttonPressed) {
+    displayMode = -1;
+    modeMax = 3;
+  }
 }
 
 void initializeRotary() {
@@ -126,8 +190,6 @@ void rotaryMenu() {
       encoderPos = 0; // check we haven't gone out of bounds above modeMax and correct if we have
     if (buttonPressed) {
       displayMode = encoderPos; // set the Mode to the current value of input if button has been pressed
-      Serial.print("DisplayMode selected: ");
-      Serial.println(displayMode);
       buttonPressed = 0; // reset the button status so one press results in one action
       if (displayMode == 1) {
         Serial.println("Display Brightness");
@@ -154,3 +216,43 @@ void rotaryMenu() {
     modeMax = 3;
   }
 }
+
+//  byte buttonState = digitalRead (encoderbutton);
+//  if (buttonState != oldButtonState) {
+//    if (millis () - buttonPressTime >= debounceTime) { // debounce
+//      buttonPressTime = millis ();
+//      oldButtonState =  buttonState;
+//      if (buttonState == LOW) {
+//        buttonPressed = 1;
+//      }
+//      else {
+//        buttonPressed = 0;
+//      }
+//    }  // end if debounce time up
+//  } // end of state change
+//  if (firstButtonPress == 0) {
+//    firstButtonPress = 1;
+//    buttonPressed = 0;
+//    mainMenu();
+//  }
+//
+//  if (firstButtonPress == 1) {
+//    if (oldEncPos != encoderPos) {
+//      setDot(encoderPos);
+//      oldEncPos = encoderPos;
+//      displayValue();
+//    }
+//    if (buttonPressed) {
+//      if (encoderPos == 0) {
+//        displayMode = 0;
+//      } else if (encoderPos == 1) {
+//        miles = 0;
+//        mileCounter = 0;
+//        EEPROM.put(0, miles);
+//        buttonPressed = 0;
+//        UpdateMiles();
+//      }else if (encoderPos==2){
+//        firstButtonPress = 0;
+//      }
+//    }
+//  }

@@ -11,7 +11,6 @@
 #define debug 1
 
 RA8875 tft = RA8875(RA8875_CS, RA8875_RESET); //Teensy3/arduino's
-//#include "RotaryEncoderMenu.h"
 
 uint16_t  RPM = 1000, PRPM = 0, TPSOverall = 0, TPS1 = 0, DiffFuelP = 0, ServoPos = 0, InjFlowRate = 0,
           CoolantP = 0, VehicleSpeed = 0, GearNumber = 0, SpdDiff = 0, FlagsLow = 0, FlagsHigh = 0,
@@ -76,6 +75,7 @@ void setup() {
     miles = 0;
   mileCounter = miles;
   MainDisplayText();
+  initializeRotary();
   Wire.begin(8);
   Wire.onReceive(wireReceive);
 }
@@ -370,13 +370,6 @@ void wireReceive(int howMany) {
 
 long unsigned start;
 void loop() {
-  /*if (millis() - start > 995) {
-    start = millis();
-    float temp = VehicleSpeed * 0.000277;
-    miles += temp;
-    UpdateMiles();
-    UpdateMPG(temp/(InjFlowRate*0.0000044));
-    }*/
   if (millis() - start > 495) {
     start = millis();
     float temp = VehicleSpeed * 0.0001388;

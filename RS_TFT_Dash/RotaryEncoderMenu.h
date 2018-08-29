@@ -5,6 +5,7 @@ void mainMenu();
 void rotaryMenu();
 void initializeRotary();
 void displayValue();
+void tRotaryMenu();
 
 static const int encoder0PinA = 2;
 static const int encoder0PinB = 3;
