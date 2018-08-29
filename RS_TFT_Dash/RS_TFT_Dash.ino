@@ -12,6 +12,7 @@
 
 RA8875 tft = RA8875(RA8875_CS, RA8875_RESET); //Teensy3/arduino's
 
+byte displayMode = 0;  
 uint16_t  RPM = 1000, PRPM = 0, TPSOverall = 0, TPS1 = 0, DiffFuelP = 0, ServoPos = 0, InjFlowRate = 0,
           CoolantP = 0, VehicleSpeed = 0, GearNumber = 0, SpdDiff = 0, FlagsLow = 0, FlagsHigh = 0,
           SlipLRGround = 0, KnockMax = 0, Inj1Duty = 0, Inj2Duty = 0, Inj3Duty = 0, Inj4Duty = 0, CalcChargTemp1 = 0,
@@ -374,7 +375,7 @@ void loop() {
     start = millis();
     float temp = VehicleSpeed * 0.0001388;
     miles += temp;
-    if (miles - mileCounter > 3) {
+    if (miles - mileCounter > 2) {
       // TODO Save miles to EEPROM
       EEPROM.put(0, miles);
       mileCounter = miles;
@@ -383,21 +384,24 @@ void loop() {
     //Need injector flow for this.
     //UpdateMPG(temp / (InjFlowRate * 0.0000022));
   }
+   tRotaryMenu();
   //delay(50);
   //SetTestValues();
-  UpdateDisplay();
-  if (millis() - timing > 120000) {
-    timing = millis();
-    tft.fillWindow(RA8875_BLACK);
-    MainDisplayText();
-    bExtV = true; bTwelveV = true; bFiveV = true; bSGNDV = true; bRPM = true; bIMAP = true; bEMAP = true;
-    bTPSOverall = true; bTPS1 = true; bLambda = true;  bECT = true;  bMAT = true;  bOilT = true;  bFuelT = true;
-    bOilP = true;  bFuelP = true;  bDiffFuelP = true;  bServoPos = true;  bCoolantP = true;  bEthanol = true;  bInjFlowRate = true;
-    bVehicleSpeed = true;  bGearNumber = true;  bSpdDiff = true;  bFlagsLow = true;  bFlagsHigh = true;  bSlipLRGround = true;
-    bKnockMax = true;  bInj1Duty = true;  bInj2Duty = true;  bInj3Duty = true;  bInj4Duty = true;  bCalcChargTemp1 = true;
-    bStoichRatio = true;  bTargetLambda = true;  bFuelInjDurOut1 = true;  bFuelInjDurOut2 = true;  bIgnTiming = true;
-    bAsyncInjDur1 = true;  bAsyncInjDur2 = true;  bIdleEffortCL = true;  bUnclippedIdleEffort = true;  bIdleEffortDuty = true;
-    bCuttingCond = true;  bCurrentRPMLimit = true;  bPitlaneRPMLimit = true;  bFuelCut = true;  bIgnCut = true;  bFuelL = true;
+  if (displayMode == -1) {
+    UpdateDisplay();
+    if (millis() - timing > 120000) {
+      timing = millis();
+      tft.fillWindow(RA8875_BLACK);
+      MainDisplayText();
+      bExtV = true; bTwelveV = true; bFiveV = true; bSGNDV = true; bRPM = true; bIMAP = true; bEMAP = true;
+      bTPSOverall = true; bTPS1 = true; bLambda = true;  bECT = true;  bMAT = true;  bOilT = true;  bFuelT = true;
+      bOilP = true;  bFuelP = true;  bDiffFuelP = true;  bServoPos = true;  bCoolantP = true;  bEthanol = true;  bInjFlowRate = true;
+      bVehicleSpeed = true;  bGearNumber = true;  bSpdDiff = true;  bFlagsLow = true;  bFlagsHigh = true;  bSlipLRGround = true;
+      bKnockMax = true;  bInj1Duty = true;  bInj2Duty = true;  bInj3Duty = true;  bInj4Duty = true;  bCalcChargTemp1 = true;
+      bStoichRatio = true;  bTargetLambda = true;  bFuelInjDurOut1 = true;  bFuelInjDurOut2 = true;  bIgnTiming = true;
+      bAsyncInjDur1 = true;  bAsyncInjDur2 = true;  bIdleEffortCL = true;  bUnclippedIdleEffort = true;  bIdleEffortDuty = true;
+      bCuttingCond = true;  bCurrentRPMLimit = true;  bPitlaneRPMLimit = true;  bFuelCut = true;  bIgnCut = true;  bFuelL = true;
+    }
   }
 }
 

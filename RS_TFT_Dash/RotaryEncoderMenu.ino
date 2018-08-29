@@ -9,8 +9,7 @@ byte oldButtonState = HIGH;  // assume switch open because of pull-up resistor
 const unsigned long debounceTime = 10;  // milliseconds
 unsigned long buttonPressTime;  // when the switch last changed state
 boolean buttonPressed = 0; // a flag variable
-// Menu and submenu/setting declarations
-byte displayMode = 0;   // This is which menu mode we are in at any given time (top level or one of the submenus)
+// Menu and submenu/setting declarations // This is which menu mode we are in at any given time (top level or one of the submenus)
 byte modeMax = 3; // This is the number of submenus/settings you want
 byte firstButtonPress = 0;
 int dotSpace = 25;
@@ -55,6 +54,7 @@ void displayValue() {
   tft.fillRect(700, 0, 100, 45, RA8875_BLACK);
   tft.setCursor(700, 0);
   tft.print(encoderPos);
+  setDot(encoderPos);
 }
 
 void mainMenu() {
@@ -77,7 +77,7 @@ void tRotaryMenu() {
     if (displayMode > 0)
       displayValue();
     if (displayMode = 1)
-    tft.brightness(encoderPos);
+      tft.brightness(encoderPos);
   }
   byte buttonState = digitalRead (encoderbutton);
   if (buttonState != oldButtonState) {
@@ -92,7 +92,7 @@ void tRotaryMenu() {
       }
     }  // end if debounce time up
   } // end of state change
-  if (displayMode == -1 && buttonPressed){
+  if (displayMode == -1 && buttonPressed) {
     displayMode = 0;
     buttonPressed = 0;
   }
@@ -104,23 +104,40 @@ void tRotaryMenu() {
       encoderPos = 0; // check we haven't gone out of bounds above modeMax and correct if we have
     if (buttonPressed) {
       displayMode = encoderPos; // set the Mode to the current value of input if button has been pressed
-    }else{
-        setDot(encoderPos); 
-        mainMenu();
-      }
-      buttonPressed = 0; // reset the button status so one press results in one action
-      if (displayMode == 1) {// Display Brightness
-        encoderPos = 55;
-        modeMax = 255;
-      } else if (displayMode == 2) {//Trip Reset
-        modeMax = 2;
-      } else if (displayMode == 3) {//Exit
-        modeMax = 2;
-      }
+    } else {
+      setDot(encoderPos);
+      mainMenu();
+    }
+    buttonPressed = 0; // reset the button status so one press results in one action
+    if (displayMode == 1) {// Display Brightness
+      encoderPos = 55;
+      modeMax = 255;
+    } else if (displayMode == 2) {//Trip Reset
+      tft.fillWindow(RA8875_BLACK);
+      tft.setFontScale(4);
+      setDot(0);
+      encoderPos = 0;
+      tft.setCursor(dotSpace, 0);
+      tft.print("Exit");
+      tft.setCursor(dotSpace, 55);
+      tft.print("Reset");
+      modeMax = 2;
+    } else if (displayMode == 3) {//Exit
+      tft.fillWindow(RA8875_BLACK);
+      tft.setFontScale(4);
+      setDot(0);
+      encoderPos = 0;
+      tft.setCursor(dotSpace, 0);
+      tft.print("Exit");
+      tft.setCursor(dotSpace, 55);
+      tft.print("Back");
+      modeMax = 2;
+    }
   }
   if (displayMode == 1 && buttonPressed) {
     tft.brightness(encoderPos);
     modeMax = 3;
+    displayMode = -1;
   } else if (displayMode == 2 && buttonPressed) {
     if (encoderPos == 1) {
       miles = 0;
@@ -128,11 +145,14 @@ void tRotaryMenu() {
       EEPROM.put(0, miles);
       buttonPressed = 0;
       UpdateMiles();
+      displayMode = -1;
     }
     modeMax = 3;
   } else if (displayMode == 3 && buttonPressed) {
-    displayMode = -1;
-    modeMax = 3;
+    if (encoderPos = 0) {
+      displayMode = -1;
+      modeMax = 3;
+    }
   }
 }
 
@@ -217,42 +237,3 @@ void rotaryMenu() {
   }
 }
 
-//  byte buttonState = digitalRead (encoderbutton);
-//  if (buttonState != oldButtonState) {
-//    if (millis () - buttonPressTime >= debounceTime) { // debounce
-//      buttonPressTime = millis ();
-//      oldButtonState =  buttonState;
-//      if (buttonState == LOW) {
-//        buttonPressed = 1;
-//      }
-//      else {
-//        buttonPressed = 0;
-//      }
-//    }  // end if debounce time up
-//  } // end of state change
-//  if (firstButtonPress == 0) {
-//    firstButtonPress = 1;
-//    buttonPressed = 0;
-//    mainMenu();
-//  }
-//
-//  if (firstButtonPress == 1) {
-//    if (oldEncPos != encoderPos) {
-//      setDot(encoderPos);
-//      oldEncPos = encoderPos;
-//      displayValue();
-//    }
-//    if (buttonPressed) {
-//      if (encoderPos == 0) {
-//        displayMode = 0;
-//      } else if (encoderPos == 1) {
-//        miles = 0;
-//        mileCounter = 0;
-//        EEPROM.put(0, miles);
-//        buttonPressed = 0;
-//        UpdateMiles();
-//      }else if (encoderPos==2){
-//        firstButtonPress = 0;
-//      }
-//    }
-//  }
