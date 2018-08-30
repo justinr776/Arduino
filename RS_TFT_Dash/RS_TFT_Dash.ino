@@ -3,6 +3,19 @@
 #include <RA8875.h>
 #include <Wire.h>
 #include "fonts/squarefont_14.c"
+//#include "RotaryEncoderMenu.h"
+void PinA();
+void PinB();
+void setDot();
+void mainMenu();
+void rotaryMenu();
+void initializeRotary();
+void displayValue();
+void tRotaryMenu();
+
+static const int encoder0PinA = 2;
+static const int encoder0PinB = 3;
+static const int encoderbutton = 6;
 //  MOSI:  11//Arduino UNO
 //  MISO:  12//Arduino UNO
 //  SCK:   13//Arduino UNO
@@ -12,7 +25,7 @@
 
 RA8875 tft = RA8875(RA8875_CS, RA8875_RESET); //Teensy3/arduino's
 
-byte displayMode = 0;  
+byte displayMode = -1;  
 uint16_t  RPM = 1000, PRPM = 0, TPSOverall = 0, TPS1 = 0, DiffFuelP = 0, ServoPos = 0, InjFlowRate = 0,
           CoolantP = 0, VehicleSpeed = 0, GearNumber = 0, SpdDiff = 0, FlagsLow = 0, FlagsHigh = 0,
           SlipLRGround = 0, KnockMax = 0, Inj1Duty = 0, Inj2Duty = 0, Inj3Duty = 0, Inj4Duty = 0, CalcChargTemp1 = 0,
@@ -384,10 +397,10 @@ void loop() {
     //Need injector flow for this.
     //UpdateMPG(temp / (InjFlowRate * 0.0000022));
   }
-   tRotaryMenu();
+   //tRotaryMenu();
   //delay(50);
   //SetTestValues();
-  if (displayMode == -1) {
+  //if (displayMode == -1) {
     UpdateDisplay();
     if (millis() - timing > 120000) {
       timing = millis();
@@ -402,6 +415,6 @@ void loop() {
       bAsyncInjDur1 = true;  bAsyncInjDur2 = true;  bIdleEffortCL = true;  bUnclippedIdleEffort = true;  bIdleEffortDuty = true;
       bCuttingCond = true;  bCurrentRPMLimit = true;  bPitlaneRPMLimit = true;  bFuelCut = true;  bIgnCut = true;  bFuelL = true;
     }
-  }
+  //}
 }
 
