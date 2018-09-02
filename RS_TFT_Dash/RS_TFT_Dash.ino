@@ -25,7 +25,7 @@ static const int encoderbutton = 6;
 
 RA8875 tft = RA8875(RA8875_CS, RA8875_RESET); //Teensy3/arduino's
 
-byte displayMode = -1;  
+byte displayMode = -1;
 uint16_t  RPM = 1000, PRPM = 0, TPSOverall = 0, TPS1 = 0, DiffFuelP = 0, ServoPos = 0, InjFlowRate = 0,
           CoolantP = 0, VehicleSpeed = 0, GearNumber = 0, SpdDiff = 0, FlagsLow = 0, FlagsHigh = 0,
           SlipLRGround = 0, KnockMax = 0, Inj1Duty = 0, Inj2Duty = 0, Inj3Duty = 0, Inj4Duty = 0, CalcChargTemp1 = 0,
@@ -92,6 +92,7 @@ void setup() {
   initializeRotary();
   Wire.begin(8);
   Wire.onReceive(wireReceive);
+  displayMode = -1;
 }
 
 void UpdateDisplay() {
@@ -397,10 +398,10 @@ void loop() {
     //Need injector flow for this.
     //UpdateMPG(temp / (InjFlowRate * 0.0000022));
   }
-   //tRotaryMenu();
-  //delay(50);
-  //SetTestValues();
-  //if (displayMode == -1) {
+  //  delay(50);
+  //  SetTestValues();
+  tRotaryMenu();
+  if (displayMode < 0) {
     UpdateDisplay();
     if (millis() - timing > 120000) {
       timing = millis();
@@ -410,11 +411,12 @@ void loop() {
       bTPSOverall = true; bTPS1 = true; bLambda = true;  bECT = true;  bMAT = true;  bOilT = true;  bFuelT = true;
       bOilP = true;  bFuelP = true;  bDiffFuelP = true;  bServoPos = true;  bCoolantP = true;  bEthanol = true;  bInjFlowRate = true;
       bVehicleSpeed = true;  bGearNumber = true;  bSpdDiff = true;  bFlagsLow = true;  bFlagsHigh = true;  bSlipLRGround = true;
-      bKnockMax = true;  bInj1Duty = true;  bInj2Duty = true;  bInj3Duty = true;  bInj4Duty = true;  bCalcChargTemp1 = true;
-      bStoichRatio = true;  bTargetLambda = true;  bFuelInjDurOut1 = true;  bFuelInjDurOut2 = true;  bIgnTiming = true;
-      bAsyncInjDur1 = true;  bAsyncInjDur2 = true;  bIdleEffortCL = true;  bUnclippedIdleEffort = true;  bIdleEffortDuty = true;
+      bKnockMax = true; bInj1Duty = true;  bInj2Duty = true;  bInj3Duty = true;  bInj4Duty = true;  bCalcChargTemp1 = true;
+      bStoichRatio = true; bTargetLambda = true;  bFuelInjDurOut1 = true;  bFuelInjDurOut2 = true;  bIgnTiming = true;
+      bAsyncInjDur1 = true; bAsyncInjDur2 = true;  bIdleEffortCL = true;  bUnclippedIdleEffort = true;  bIdleEffortDuty = true;
       bCuttingCond = true;  bCurrentRPMLimit = true;  bPitlaneRPMLimit = true;  bFuelCut = true;  bIgnCut = true;  bFuelL = true;
+      bCruiseSpeed = true; bCruiseState = false;
     }
-  //}
+  }
 }
 

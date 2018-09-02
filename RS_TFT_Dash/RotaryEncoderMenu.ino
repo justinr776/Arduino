@@ -12,6 +12,7 @@ boolean buttonPressed = 0; // a flag variable
 // Menu and submenu/setting declarations // This is which menu mode we are in at any given time (top level or one of the submenus)
 byte modeMax = 3; // This is the number of submenus/settings you want
 byte firstButtonPress = 0;
+bool displayed = false;
 int dotSpace = 25;
 //int f1 = 26, f2 = 45, f3 = 63; //TODO remove once merged
 
@@ -49,7 +50,7 @@ void setDot(byte pos) {
   tft.fillRect(8, pos * 17 + pos * 10, 10, 10, RA8875_RED);
 }
 
-void displayValue() {
+void displayValue() { // Text on the bottom with the encoder value
   tft.setFontScale(4);
   tft.fillRect(700, 0, 100, 45, RA8875_BLACK);
   tft.setCursor(700, 0);
@@ -106,7 +107,9 @@ void tRotaryMenu() {
       displayMode = encoderPos; // set the Mode to the current value of input if button has been pressed
     } else {
       setDot(encoderPos);
+      if (!displayed)
       mainMenu();
+      displayed = true;
     }
     buttonPressed = 0; // reset the button status so one press results in one action
     if (displayMode == 1) {// Display Brightness
@@ -133,7 +136,8 @@ void tRotaryMenu() {
       tft.print("Back");
       modeMax = 2;
     }
-  }
+  }else 
+    displayed = false;
   if (displayMode == 1 && buttonPressed) {
     tft.brightness(encoderPos);
     modeMax = 3;
@@ -173,7 +177,7 @@ void setAdmin(byte name, byte setting) {
   Serial.println(setting);
   encoderPos = 0; // reorientate the menu index - optional as we have overflow check code elsewhere
   buttonPressed = 0; // reset the button status so one press results in one action
-  displayMode = 0; // go back to top level of menu, now that we've set values
+  displayMode = -1; 
   Serial.println("Main Menu");
 }
 
