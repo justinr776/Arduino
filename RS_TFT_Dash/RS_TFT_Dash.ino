@@ -25,7 +25,7 @@ static const int encoderbutton = 6;
 
 RA8875 tft = RA8875(RA8875_CS, RA8875_RESET); //Teensy3/arduino's
 
-byte displayMode = -1;
+byte displayMode = 255;
 uint16_t  RPM = 1000, PRPM = 0, TPSOverall = 0, TPS1 = 0, DiffFuelP = 0, ServoPos = 0, InjFlowRate = 0,
           CoolantP = 0, VehicleSpeed = 0, GearNumber = 0, SpdDiff = 0, FlagsLow = 0, FlagsHigh = 0,
           SlipLRGround = 0, KnockMax = 0, Inj1Duty = 0, Inj2Duty = 0, Inj3Duty = 0, Inj4Duty = 0, CalcChargTemp1 = 0,
@@ -44,11 +44,12 @@ boolean bExtV = false, bTwelveV = false, bFiveV = false, bSGNDV = false, bRPM = 
         bAsyncInjDur1 = false, bAsyncInjDur2 = false, bIdleEffortCL = false, bUnclippedIdleEffort = false, bIdleEffortDuty = false,
         bCuttingCond = false, bCurrentRPMLimit = false, bPitlaneRPMLimit = false, bFuelCut = false, bIgnCut = false, bFuelL = false,
         bCruiseSpeed = false, bCruiseState = false;
+boolean leftDisplayMode = false;
 int f1 = 26, f2 = 45, f3 = 63;
 unsigned long timing;
 
 void MainDisplayText() {
-  tft.setTextColor(RA8875_WHITE);
+  tft.setTextColor(RA8875_GREEN);
   tft.setFont(&squarefont_14);
   tft.showCursor(NOCURSOR, false);
 
@@ -84,18 +85,19 @@ void setup() {
   tft.begin(RA8875_800x480);
   tft.fillWindow(RA8875_BLACK);
   tft.brightness(50);
+  initializeRotary();
   EEPROM.get(0, miles);
   if (isnan(miles))
     miles = 0;
   mileCounter = miles;
   MainDisplayText();
-  initializeRotary();
   Wire.begin(8);
   Wire.onReceive(wireReceive);
-  displayMode = -1;
+  displayMode = 255;
 }
 
 void UpdateDisplay() {
+  tft.setTextColor(RA8875_WHITE);
   if (bRPM) {
     int16_t val = (int16_t)(0.1143 * RPM);
     if (PRPM > RPM) {
@@ -242,6 +244,7 @@ void UpdateDisplay() {
 }
 
 void UpdateMiles() {
+      tft.setTextColor(RA8875_WHITE);
   tft.setCursor(315, 365);
   tft.setFontScale(3);
   tft.fillRect(320, 385, 150, f2, RA8875_BLACK);
@@ -385,23 +388,28 @@ void wireReceive(int howMany) {
 
 long unsigned start;
 void loop() {
-  if (millis() - start > 495) {
-    start = millis();
-    float temp = VehicleSpeed * 0.0001388;
-    miles += temp;
-    if (miles - mileCounter > 2) {
-      // TODO Save miles to EEPROM
-      EEPROM.put(0, miles);
-      mileCounter = miles;
-    }
-    UpdateMiles();
-    //Need injector flow for this.
-    //UpdateMPG(temp / (InjFlowRate * 0.0000022));
+  if (leftDisplayMode)  {
+
+  tft.fillWindow(RA8875_BLACK);
+    MainDisplayText();
+    leftDisplayMode = false;
   }
-  //  delay(50);
-  //  SetTestValues();
-  tRotaryMenu();
-  if (displayMode < 0) {
+  //if (displayMode = 255) {
+    if (millis() - start > 495) {
+      start = millis();
+      float temp = VehicleSpeed * 0.0001388;
+      miles += temp;
+      if (miles - mileCounter > 2) {
+        // TODO Save miles to EEPROM
+        EEPROM.put(0, miles);
+        mileCounter = miles;
+      }
+      UpdateMiles();
+      //Need injector flow for this.
+      //UpdateMPG(temp / (InjFlowRate * 0.0000022));
+    }
+    //  delay(50);
+    //  SetTestValues();
     UpdateDisplay();
     if (millis() - timing > 120000) {
       timing = millis();
@@ -417,6 +425,7 @@ void loop() {
       bCuttingCond = true;  bCurrentRPMLimit = true;  bPitlaneRPMLimit = true;  bFuelCut = true;  bIgnCut = true;  bFuelL = true;
       bCruiseSpeed = true; bCruiseState = false;
     }
-  }
+ // }
+  //tRotaryMenu();
 }
 
