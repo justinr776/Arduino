@@ -1,4 +1,3 @@
-#include "RotaryEncoderMenu.h"
 int button_press = 0;
 byte displaySet = -1;
 volatile byte aFlag = 0, bFlag = 0;
@@ -10,11 +9,178 @@ const unsigned long debounceTime = 10;  // milliseconds
 unsigned long buttonPressTime;  // when the switch last changed state
 boolean buttonPressed = 0; // a flag variable
 // Menu and submenu/setting declarations // This is which menu mode we are in at any given time (top level or one of the submenus)
-byte modeMax = 3; // This is the number of submenus/settings you want
+byte modeMax = 2; // This is the number of submenus/settings you want
 byte firstButtonPress = 0;
 bool displayed = false;
 int dotSpace = 25;
-//int f1 = 26, f2 = 45, f3 = 63; //TODO remove once merged
+
+void setDot(byte pos) {
+  pos++;
+  tft.fillRect(0, 0, dotSpace, 600, RA8875_BLACK);
+  tft.fillRect(8, pos * 17 + pos * 10, 10, 10, RA8875_RED);
+}
+
+void displayValue() { // Text on the bottom with the encoder value
+  tft.setFontScale(4);
+  tft.fillRect(675, 0, 125, 65, RA8875_BLACK);
+  tft.setCursor(675, 0);
+  tft.print(oldEncPos);
+}
+
+void mainMenu() {
+  tft.fillWindow(RA8875_BLACK);
+  tft.setFontScale(4);
+  setDot(0);
+  encoderPos = 0;
+  modeMax = 2;
+  tft.setCursor(dotSpace, 0);
+  tft.print("DISPLAY BRIGHTNESS");
+  tft.setCursor(dotSpace, 55);
+  tft.print("RESET TRIP");
+  tft.setCursor(dotSpace, 110);
+  tft.print("EXIT");
+}
+
+void buttonPressedSubMenu() {
+  if (displayMode == 1 ) {
+    tft.brightness(oldEncPos);
+    modeMax = 2;
+    leftDisplayMode = true;
+    displayMode = 255;
+  } else if (displayMode == 2) {
+    if (oldEncPos == 1) {
+      miles = 0;
+      mileCounter = 0;
+      EEPROM.put(0, miles);
+      buttonPressed = 0;
+      UpdateMiles();
+    }
+    leftDisplayMode = true;
+    displayMode = 255;
+    modeMax = 2;
+  } else if (displayMode == 3) {
+    if (oldEncPos = 0) {
+      leftDisplayMode = true;
+      displayMode = 255;
+      modeMax = 2;
+    } else
+      displayMode = 0;
+  }
+}
+
+  // brightness settings, resetting the trip, etc.
+  // have another sort of trip that could be set to x value and tell you when you need to change the oil since there is no real other reasoning for an odo.
+  // Later I will need a few menus for DCCD and other drive modes, but I can't use any of that right now, so it's a pretty low priority.
+
+void rotaryMenu() {
+  tft.setTextColor(RA8875_WHITE);
+  byte buttonState = digitalRead (encoderbutton);
+  if (buttonState != oldButtonState) {
+    if (millis () - buttonPressTime >= debounceTime) { // debounce
+      buttonPressTime = millis ();
+      oldButtonState =  buttonState;
+      if (buttonState == LOW) {
+        buttonPressed = 1;
+        Serial.println("Button Pressed");
+      }
+      else {
+        buttonPressed = 0;
+        Serial.println("Button DePressed");
+      }
+    }  // end if debounce time up
+  } // end of state change
+
+  if (oldEncPos != encoderPos) {
+    Serial.println(encoderPos);
+    oldEncPos = encoderPos;
+    if (displayMode != 255)
+      displayValue();
+    if (displayMode == 1)
+      tft.brightness(encoderPos);
+  }
+  Serial.print("Display Mode: ");
+  Serial.println(displayMode);
+
+  if (displayMode == 255 && buttonPressed == 1) {
+    displayMode = 0;
+    buttonPressed = 0;
+    encoderPos = 0;
+    oldEncPos = 0;
+    modeMax = 2;
+  }
+
+  // Modify encoder pos to match the menu options
+  if (displayMode != 255) {
+    if (oldEncPos < 0) { // check we haven't gone out of bounds below 0 and correct if we have
+      oldEncPos = modeMax;
+      encoderPos = modeMax;
+    } else if (oldEncPos > modeMax) { // check we haven't gone out of bounds above modeMax and correct if we have
+      encoderPos = 0;
+      oldEncPos = 0;
+    }
+    setDot(oldEncPos);
+  }
+
+  //Main menu section
+  if (displayMode == 0) {
+    if (buttonPressed) {
+      displayMode = oldEncPos + 1; // set the Mode to the current value of input if button has been pressed
+    } else {
+      if (!displayed) {
+        mainMenu();
+        setDot(oldEncPos);
+        displayed = true;
+      }
+    }
+    buttonPressed = 0; // reset the button status so one press results in one action
+    if (displayMode == 1) {// Display Brightness
+      Serial.println("Display Brightness");
+      tft.fillWindow(RA8875_BLACK);
+      tft.setCursor(dotSpace, 0);
+      tft.print("DISPLAY BRIGHTNESS");
+      tft.setCursor(dotSpace, 55);
+      tft.print("CLICK TO SET");
+      encoderPos = 55;
+      oldEncPos = 55;
+      modeMax = 254;
+    } else if (displayMode == 2) {//Trip Reset
+      tft.fillWindow(RA8875_BLACK);
+      tft.setFontScale(4);
+      setDot(0);
+      encoderPos = 0;
+      tft.setCursor(dotSpace, 0);
+      tft.print("Exit");
+      tft.setCursor(dotSpace, 55);
+      tft.print("Reset");
+      modeMax = 1;
+    } else if (displayMode == 3) {//Exit
+      tft.fillWindow(RA8875_BLACK);
+      tft.setFontScale(4);
+      setDot(0);
+      encoderPos = 0;
+      tft.setCursor(dotSpace, 0);
+      tft.print("Exit");
+      tft.setCursor(dotSpace, 55);
+      tft.print("Back");
+      modeMax = 1;
+    }
+  } else {
+    displayed = false;
+  }
+
+  // Button Pressed in a menu option
+  if (buttonPressed == 1) {
+    buttonPressedSubMenu();
+  }
+}
+
+void initializeRotary() {
+  pinMode (encoder0PinA, INPUT_PULLUP);
+  pinMode (encoder0PinB, INPUT_PULLUP);
+  pinMode (encoderbutton, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(encoder0PinA), PinA, RISING);
+  attachInterrupt(digitalPinToInterrupt(encoder0PinB), PinB, RISING);
+}
 
 //Rotary encoder interrupt service routine for one encoder pin
 void PinA() {
@@ -42,152 +208,6 @@ void PinB() {
   sei(); //restart interrupts
 }
 
-void setDot(byte pos) {
-  pos++;
-  //  Serial.print("Dot Pos: ");
-  //  Serial.println(pos);
-  tft.fillRect(0, 0, dotSpace, 600, RA8875_BLACK);
-  tft.fillRect(8, pos * 17 + pos * 10, 10, 10, RA8875_RED);
-}
-
-void displayValue() { // Text on the bottom with the encoder value
-  tft.setFontScale(4);
-  tft.fillRect(675, 0, 125, 65, RA8875_BLACK);
-  tft.setCursor(675, 0);
-  tft.print(encoderPos);
-  setDot(encoderPos);
-}
-
-void mainMenu() {
-  tft.fillWindow(RA8875_BLACK);
-  tft.setFontScale(4);
-  setDot(0);
-  encoderPos = 0;
-  modeMax = 2;
-  tft.setCursor(dotSpace, 0);
-  tft.print("DISPLAY BRIGHTNESS");
-  tft.setCursor(dotSpace, 55);
-  tft.print("RESET TRIP");
-  tft.setCursor(dotSpace, 110);
-  tft.print("EXIT");
-}
-
-void tRotaryMenu() {
-  tft.setTextColor(RA8875_WHITE);
-  cli();
-  if (oldEncPos != encoderPos) {
-    Serial.println(encoderPos);
-    oldEncPos = encoderPos;
-    if (displayMode != 255)
-      displayValue();
-    if (displayMode == 1)
-      tft.brightness(encoderPos);
-  }
-  Serial.print("Display Mode: ");
-  Serial.println(displayMode);
-  byte buttonState = digitalRead (encoderbutton);
-  if (buttonState != oldButtonState) {
-    if (millis () - buttonPressTime >= debounceTime) { // debounce
-      buttonPressTime = millis ();
-      oldButtonState =  buttonState;
-      if (buttonState == LOW) {
-        buttonPressed = 1;
-        Serial.println("Button Pressed");
-      }
-      else {
-        buttonPressed = 0;
-        Serial.println("Button DePressed");
-      }
-    }  // end if debounce time up
-  } // end of state change
-  if (displayMode == 255 && buttonPressed) {
-    displayMode = 0;
-    buttonPressed = 0;
-    encoderPos = 0;
-  }
-  if (displayMode != 255) {
-    if (encoderPos < 0)
-      encoderPos = modeMax; // check we haven't gone out of bounds below 0 and correct if we have
-    else if (encoderPos > modeMax)
-      encoderPos = 0; // check we haven't gone out of bounds above modeMax and correct if we have
-    setDot(encoderPos);
-  }
-  //Main menu section
-  if (displayMode == 0) {
-    if (buttonPressed) {
-      displayMode = encoderPos + 1; // set the Mode to the current value of input if button has been pressed
-    } else {
-      if (!displayed)
-        mainMenu();
-      displayed = true;
-    }
-    buttonPressed = 0; // reset the button status so one press results in one action
-    if (displayMode == 1) {// Display Brightness
-      Serial.println("Display Brightness");
-      tft.fillWindow(RA8875_BLACK);
-      tft.setCursor(dotSpace, 0);
-      tft.print("DISPLAY BRIGHTNESS");
-      tft.setCursor(dotSpace, 55);
-      tft.print("CLICK TO SET");
-      encoderPos = 55;
-      modeMax = 254;
-    } else if (displayMode == 2) {//Trip Reset
-      tft.fillWindow(RA8875_BLACK);
-      tft.setFontScale(4);
-      setDot(0);
-      encoderPos = 0;
-      tft.setCursor(dotSpace, 0);
-      tft.print("Exit");
-      tft.setCursor(dotSpace, 55);
-      tft.print("Reset");
-      modeMax = 1;
-    } else if (displayMode == 3) {//Exit
-      tft.fillWindow(RA8875_BLACK);
-      tft.setFontScale(4);
-      setDot(0);
-      encoderPos = 0;
-      tft.setCursor(dotSpace, 0);
-      tft.print("Exit");
-      tft.setCursor(dotSpace, 55);
-      tft.print("Back");
-      modeMax = 1;
-    }
-  } else
-    displayed = false;
-  if (displayMode == 1 && buttonPressed) {
-    tft.brightness(encoderPos);
-    modeMax = 2;
-    leftDisplayMode = true;
-    displayMode = 255;
-  } else if (displayMode == 2 && buttonPressed) {
-    if (encoderPos == 1) {
-      miles = 0;
-      mileCounter = 0;
-      EEPROM.put(0, miles);
-      buttonPressed = 0;
-      UpdateMiles();
-    }
-    leftDisplayMode = true;
-    displayMode = 255;
-    modeMax = 2;
-  } else if (displayMode == 3 && buttonPressed) {
-    if (encoderPos = 0) {
-      leftDisplayMode = true;
-      displayMode = 255;
-      modeMax = 2;
-    } else
-      displayMode = 0;
-  }
-  sei();
-}
-
-void initializeRotary() {
-  pinMode (encoder0PinA, INPUT_PULLUP);
-  pinMode (encoder0PinB, INPUT_PULLUP);
-  pinMode (encoderbutton, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(encoder0PinA), PinA, RISING);
-  attachInterrupt(digitalPinToInterrupt(encoder0PinB), PinB, RISING);
-}
 /**
   // Carry out common activities each time a setting is changed
   void setAdmin(byte name, byte setting) {
@@ -201,63 +221,4 @@ void initializeRotary() {
   Serial.println("Main Menu");
   }
 
-  // brightness settings, resetting the trip, etc.
-  // have another sort of trip that could be set to x value and tell you when you need to change the oil since there is no real other reasoning for an odo.
-  // Later I will need a few menus for DCCD and other drive modes, but I can't use any of that right now, so it's a pretty low priority.
-
-  void rotaryMenu() {
-  if (oldEncPos != encoderPos) {
-    Serial.println(encoderPos);
-    setDot(encoderPos);
-    oldEncPos = encoderPos;
-    displayValue();
-  }
-  byte buttonState = digitalRead (encoderbutton);
-  if (buttonState != oldButtonState) {
-    if (millis () - buttonPressTime >= debounceTime) { // debounce
-      buttonPressTime = millis ();
-      oldButtonState =  buttonState;
-      if (buttonState == LOW) {
-        buttonPressed = 1;
-      }
-      else {
-        buttonPressed = 0;
-      }
-    }  // end if debounce time up
-  } // end of state change
-
-  //Main menu section
-  if (displayMode == 0) {
-    if (encoderPos > (modeMax + 10))
-      encoderPos = modeMax; // check we haven't gone out of bounds below 0 and correct if we have
-    else if (encoderPos > modeMax)
-      encoderPos = 0; // check we haven't gone out of bounds above modeMax and correct if we have
-    if (buttonPressed) {
-      displayMode = encoderPos; // set the Mode to the current value of input if button has been pressed
-      buttonPressed = 0; // reset the button status so one press results in one action
-      if (displayMode == 1) {
-        Serial.println("Display Brightness");
-        encoderPos = 75;
-        modeMax = 255;
-      }
-      if (displayMode == 2) {
-        Serial.println("Trip Reset");
-        modeMax = 2;
-      }
-      if (displayMode == 3) {
-        Serial.println("DCCD");
-      }
-    }
-  }
-  if (displayMode == 1 && buttonPressed) {
-    tft.brightness(encoderPos);
-    modeMax = 3;
-  } else if (displayMode == 2 && buttonPressed) {
-    if (encoderPos == 1)
-      miles = 0;
-    modeMax = 3;
-  } else if (displayMode == 3 && buttonPressed) {
-    modeMax = 3;
-  }
-  }
 */

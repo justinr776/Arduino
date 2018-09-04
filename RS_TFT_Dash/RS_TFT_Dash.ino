@@ -3,19 +3,7 @@
 #include <RA8875.h>
 #include <Wire.h>
 #include "fonts/squarefont_14.c"
-//#include "RotaryEncoderMenu.h"
-void PinA();
-void PinB();
-void setDot();
-void mainMenu();
-void rotaryMenu();
-void initializeRotary();
-void displayValue();
-void tRotaryMenu();
-
-static const int encoder0PinA = 2;
-static const int encoder0PinB = 3;
-static const int encoderbutton = 6;
+#include "RotaryEncoderMenu.h"
 //  MOSI:  11//Arduino UNO
 //  MISO:  12//Arduino UNO
 //  SCK:   13//Arduino UNO
@@ -44,7 +32,7 @@ boolean bExtV = false, bTwelveV = false, bFiveV = false, bSGNDV = false, bRPM = 
         bAsyncInjDur1 = false, bAsyncInjDur2 = false, bIdleEffortCL = false, bUnclippedIdleEffort = false, bIdleEffortDuty = false,
         bCuttingCond = false, bCurrentRPMLimit = false, bPitlaneRPMLimit = false, bFuelCut = false, bIgnCut = false, bFuelL = false,
         bCruiseSpeed = false, bCruiseState = false;
-boolean leftDisplayMode = false;
+boolean leftDisplayMode = false, Lup = true;
 int f1 = 26, f2 = 45, f3 = 63;
 unsigned long timing;
 
@@ -260,7 +248,6 @@ void UpdateMPG(float MPG) {
   //  tft.print(MPG);
 }
 
-boolean Lup = true;
 void SetTestValues() {
   bFuelP = true;
   FuelP = 585 / 10;
@@ -394,7 +381,7 @@ void loop() {
     MainDisplayText();
     leftDisplayMode = false;
   }
-  //if (displayMode = 255) {
+  if (displayMode == 255) {
     if (millis() - start > 495) {
       start = millis();
       float temp = VehicleSpeed * 0.0001388;
@@ -425,7 +412,7 @@ void loop() {
       bCuttingCond = true;  bCurrentRPMLimit = true;  bPitlaneRPMLimit = true;  bFuelCut = true;  bIgnCut = true;  bFuelL = true;
       bCruiseSpeed = true; bCruiseState = false;
     }
- // }
-  //tRotaryMenu();
+  }
+  rotaryMenu();
 }
 
