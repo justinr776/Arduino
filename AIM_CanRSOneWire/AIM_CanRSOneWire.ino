@@ -55,28 +55,28 @@ void loop() {
   if (CAN_MSGAVAIL == CAN.checkReceive())  {
     CAN.readMsgBuf(&len, buf);    // read data,  len: data length, buf: data buf
     unsigned char canId = CAN.getCanId();
-#if debug
-//    Serial.print("-----------------------------\nCAN ID:\t");
-//    Serial.println(canId, HEX);
+    //#if debug
+    //    Serial.print("-----------------------------\nCAN ID:\t");
+    //    Serial.println(canId, HEX);
     //    for (int i = 0; i < len; i++) {
     //      Serial.print(buf[i], HEX);
     //      Serial.print("\t");
     //    }
-#endif
+    //#endif
     switch (canId) {
       case 0x04:
-        inExtV = (buf[0] << 8) + buf [1];
+        //        inExtV = (buf[0] << 8) + buf [1];
         inTwelveV = (buf[2] << 8) + buf[3];
         if (Twelve != inTwelveV) {
           sendWireMessage(1, inTwelveV);
           Twelve = inTwelveV;
         }
-        inFiveV = (buf[4] << 8) + buf [5];
-        inSGNDV = (buf[6] << 8) + buf [7];
+        //        inFiveV = (buf[4] << 8) + buf [5];
+        //        inSGNDV = (buf[6] << 8) + buf [7];
         break;
       case 0x10:
         inRPM = (buf[0] << 8) + buf [1];
-        if (inRPM != RPM) {
+        if (inRPM > (RPM + 6) || inRPM < (RPM - 6)) { //Buffer RPM by 10
           sendWireMessage(2, inRPM);
           RPM = inRPM;
         }
@@ -87,12 +87,12 @@ void loop() {
           sendWireMessage(3, inIMAP);
           IMAP = inIMAP;
         }
-        inEMAP = (buf[4] << 8) + buf [5];
+        //        inEMAP = (buf[4] << 8) + buf [5];
         break;
-      case 0x63:
-        inTPSOverall = (buf[0] << 8) + buf [1];
-        inTPS1 = (buf[2] << 8) + buf [3];
-        break;
+      //      case 0x63:
+      //        inTPSOverall = (buf[0] << 8) + buf [1];
+      //        inTPS1 = (buf[2] << 8) + buf [3];
+      //        break;
       case 0x64:
         inLambda = (buf[2] << 8) + buf [3];
         if (Lambda != inLambda) {
@@ -106,7 +106,7 @@ void loop() {
         }
         break;
       case 0x65:
-        inMAT = (buf[0] << 8) + buf [1];
+        //        inMAT = (buf[0] << 8) + buf [1];
         inOilT = (buf[2] << 8) + buf [3];
         if (inOilT == 655 || inOilT < 0)
           inOilT = 0;
@@ -114,24 +114,24 @@ void loop() {
           sendWireMessage(6, inOilT);
           OilT = inOilT;
         }
-        inFuelT = (buf[4] << 8) + buf [5];
+        //        inFuelT = (buf[4] << 8) + buf [5];
         inOilP = (buf[6] << 8) + buf [7];
         if (inOilP == 655 || inOilP < 0)
           inOilP = 0;
-        if (OilP != inOilP) {
+        if (inOilP > (OilP + 3) || inOilP < (OilP - 3)) { //Buffer OilPressure by 4
           sendWireMessage(7, inOilP);
           OilP = inOilP;
         }
         break;
       case 0x66:
         inFuelP = (buf[0] << 8) + buf [1];
-        if (FuelP != inFuelP) {
+        if (inFuelP > (FuelP + 3) || inFuelP < (FuelP - 3)) { //Buffer FuelPressure by 4
           sendWireMessage(8, inFuelP);
           FuelP = inFuelP;
         }
-        inDiffFuelP = (buf[2] << 8) + buf [3];
-        inServoPos = (buf[4] << 8) + buf [5];
-        inCoolantP = (buf[6] << 8) + buf [7];
+        //        inDiffFuelP = (buf[2] << 8) + buf [3];
+        //        inServoPos = (buf[4] << 8) + buf [5];
+        //        inCoolantP = (buf[6] << 8) + buf [7];
         break;
       case 0x67:
         inEthanol = (buf[4] << 8) + buf [5];
@@ -145,10 +145,10 @@ void loop() {
           VehicleSpeed = inVehicleSpeed;
         }
         break;
-      case 0x68:
-        inGearNumber = (buf[0] << 8) + buf [1];
-        inSpdDiff = (buf[6] << 8) + buf [7];
-        break;
+      //      case 0x68:
+      //        inGearNumber = (buf[0] << 8) + buf [1];
+      //        inSpdDiff = (buf[6] << 8) + buf [7];
+      //        break;
       case 0x6C:
         inFlagsLow = (buf[4] << 8) + buf [5];
         if (FlagsLow != inFlagsLow) {
@@ -161,62 +161,59 @@ void loop() {
           FlagsHigh = inFlagsHigh;
         }
         break;
-      case 0x75:
-        inSlipLRGround = (buf[0] << 8) + buf [1];
-        inKnockMax = (buf[6] << 8) + buf [7];
-        break;
-      case 0x78:
-        inInj1Duty = (buf[0] << 8) + buf [1];
-        inInj2Duty = (buf[2] << 8) + buf [3];
-        inInj3Duty = (buf[4] << 8) + buf [5];
-        inInj4Duty = (buf[6] << 8) + buf [7];
-        break;
-      case 0x81:
-        inCalcChargTemp1 = (buf[0] << 8) + buf [1];
-        inStoichRatio = (buf[4] << 8) + buf [5];
-        inTargetLambda = (buf[6] << 8) + buf [7];
-        break;
+      //      case 0x75:
+      //        inSlipLRGround = (buf[0] << 8) + buf [1];
+      //        inKnockMax = (buf[6] << 8) + buf [7];
+      //        break;
+      //      case 0x78:
+      //        inInj1Duty = (buf[0] << 8) + buf [1];
+      //        inInj2Duty = (buf[2] << 8) + buf [3];
+      //        inInj3Duty = (buf[4] << 8) + buf [5];
+      //        inInj4Duty = (buf[6] << 8) + buf [7];
+      //        break;
+      //      case 0x81:
+      //        inCalcChargTemp1 = (buf[0] << 8) + buf [1];
+      //        inStoichRatio = (buf[4] << 8) + buf [5];
+      //        inTargetLambda = (buf[6] << 8) + buf [7];
+      //        break;
       case 0x84:
         inInjFlowRate = (buf[4] << 8) + buf [5];
         if (InjFlowRate != inInjFlowRate) {
           sendWireMessage(13, inInjFlowRate);
           InjFlowRate = inInjFlowRate;
-#if debug
-//          Serial.println(InjFlowRate);
-#endif
         }
         break;
-      case 0x86: //TODO Change Vars
-        inInj1Duty = (buf[0] << 8) + buf [1];
-        inInj2Duty = (buf[2] << 8) + buf [3];
-        inInj3Duty = (buf[4] << 8) + buf [5];
-        inInj4Duty = (buf[6] << 8) + buf [7];
-        break;
-      case 0x8A:
-        inFuelInjDurOut1 = (buf[4] << 8) + buf [5];
-        inFuelInjDurOut2 = (buf[6] << 8) + buf [7];
-        break;
-      case 0xA3:
-        inIgnTiming = (buf[0] << 8) + buf [1];
-        break;
-      case 0xA5:
-        inAsyncInjDur1 = (buf[0] << 8) + buf [1];
-        inAsyncInjDur2 = (buf[4] << 8) + buf [5];
-        break;
-      case 0xAA:
-        inIdleEffortCL = (buf[0] << 8) + buf [1];
-        inUnclippedIdleEffort = (buf[4] << 8) + buf [5];
-        inIdleEffortDuty = (buf[6] << 8) + buf [7];
-        break;
-      case 0xB0:
-        inCuttingCond = (buf[0] << 8) + buf [1];
-        inCurrentRPMLimit = (buf[2] << 8) + buf [3];
-        inPitlaneRPMLimit = (buf[4] << 8) + buf [5];
-        break;
-      case 0xB1:
-        inFuelCut = (buf[4] << 8) + buf [5];
-        inIgnCut = (buf[6] << 8) + buf [7];
-        break;
+      //      case 0x86: //TODO Change Vars
+      //        inInj1Duty = (buf[0] << 8) + buf [1];
+      //        inInj2Duty = (buf[2] << 8) + buf [3];
+      //        inInj3Duty = (buf[4] << 8) + buf [5];
+      //        inInj4Duty = (buf[6] << 8) + buf [7];
+      //        break;
+      //      case 0x8A:
+      //        inFuelInjDurOut1 = (buf[4] << 8) + buf [5];
+      //        inFuelInjDurOut2 = (buf[6] << 8) + buf [7];
+      //        break;
+      //      case 0xA3:
+      //        inIgnTiming = (buf[0] << 8) + buf [1];
+      //        break;
+      //      case 0xA5:
+      //        inAsyncInjDur1 = (buf[0] << 8) + buf [1];
+      //        inAsyncInjDur2 = (buf[4] << 8) + buf [5];
+      //        break;
+      //      case 0xAA:
+      //        inIdleEffortCL = (buf[0] << 8) + buf [1];
+      //        inUnclippedIdleEffort = (buf[4] << 8) + buf [5];
+      //        inIdleEffortDuty = (buf[6] << 8) + buf [7];
+      //        break;
+      //      case 0xB0:
+      //        inCuttingCond = (buf[0] << 8) + buf [1];
+      //        inCurrentRPMLimit = (buf[2] << 8) + buf [3];
+      //        inPitlaneRPMLimit = (buf[4] << 8) + buf [5];
+      //        break;
+      //      case 0xB1:
+      //        inFuelCut = (buf[4] << 8) + buf [5];
+      //        inIgnCut = (buf[6] << 8) + buf [7];
+      //        break;
       case 0xB5:
         inCruiseState = (buf[2] << 8) + buf [3];
         if (inCruiseState != CruiseState) {
@@ -238,24 +235,24 @@ void loop() {
   }
 }
 
-int fuelLvl[4];// = new int[4];
+int fuelLvl[8];
 byte index = 0;
 void readFuelLevel() {
   inFuelLevel = analogRead(FUELPIN);
   FuelLevel = 100 - (inFuelLevel / 3);
 #if debug
-//  Serial.print("\nFuel Level: ");
-//  Serial.println(inFuelLevel);
-//  Serial.print("\nFuel Level Mod: ");
-//  Serial.println(FuelLevel);
+  //  Serial.print("\nFuel Level: ");
+  //  Serial.println(inFuelLevel);
+  //  Serial.print("\nFuel Level Mod: ");
+  //  Serial.println(FuelLevel);
 #endif
   if (FuelLevel > 100)
     FuelLevel = 100;
   else if (FuelLevel < 0)
     FuelLevel = 0;
-  if (index > 3) { //Apply Smoothing to the fuel level
+  if (index > 7) { //Apply Smoothing to the fuel level
     index = 0;
-    FuelLevel = (fuelLvl[0] + fuelLvl[1] + fuelLvl[2] + fuelLvl[3]) / 4;
+    FuelLevel = (fuelLvl[0] + fuelLvl[1] + fuelLvl[2] + fuelLvl[3] + fuelLvl[4] + fuelLvl[5] + fuelLvl[6] + fuelLvl[7]) / 8;
     sendWireMessage(14, FuelLevel);
   } else {
     fuelLvl[index] = FuelLevel;
